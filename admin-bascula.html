@@ -1,0 +1,2252 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>La Basculă.Ro</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@google/generative-ai@0.12.0/dist/index.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1115;
+    --card:#171a21;
+    --card2:#1e222b;
+    --border:#2a2f3a;
+    --amber:#f5a623;
+    --amber-dark:#c9821a;
+    --green:#3ecf8e;
+    --red:#e5484d;
+    --blue:#4f9dff;
+    --purple:#b385f5;
+    --text:#e8e9ec;
+    --muted:#8a8f99;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    padding-bottom:40px;
+  }
+  header{
+    padding:16px 16px 12px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,#171a21,#0f1115);
+  }
+  header h1{margin:0;font-size:1.2rem;letter-spacing:.3px;}
+  header .sub{color:var(--muted);font-size:.78rem;margin-top:2px;}
+  
+  .header-dashboard{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:8px;
+    padding:10px 16px;
+    background:#12151b;
+    border-bottom:1px solid var(--border);
+    font-size:.8rem;
+  }
+  .hd-box{
+    background:var(--card2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 10px;
+    text-align:center;
+  }
+  .hd-box .hd-val{font-size:1rem;font-weight:700;color:var(--amber);}
+  .hd-box .hd-lbl{font-size:.68rem;color:var(--muted);margin-top:1px;}
+  
+  .acts-bar{
+    grid-column: 1 / -1;
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:2px;
+  }
+  .act-badge{
+    flex:0 0 auto;
+    font-size:.7rem;
+    font-weight:600;
+    padding:4px 8px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--card);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .act-green{border-color:var(--green);color:var(--green);background:rgba(62,207,142,.08);}
+  .act-yellow{border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,.08);}
+  .act-red{border-color:var(--red);color:var(--red);background:rgba(229,72,77,.12);}
+
+  .wrap{max-width:520px;margin:0 auto;padding:16px;}
+  .tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:16px;
+    background:var(--card2);
+    padding:4px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    overflow-x:auto;
+  }
+  .tab{
+    flex:0 0 auto;
+    text-align:center;
+    padding:10px 12px;
+    border-radius:9px;
+    font-size:.8rem;
+    font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+    user-select:none;
+    white-space:nowrap;
+  }
+  .tab.active{background:var(--amber);color:#1a1200;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .card h2{margin:0 0 12px;font-size:1rem;color:var(--amber);}
+  .card h2.blue{color:var(--blue);}
+  .card h2.purple{color:var(--purple);}
+  .card h2.green{color:var(--green);}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stat{background:var(--card2);border-radius:10px;padding:12px;text-align:center;}
+  .stat .val{font-size:1.3rem;font-weight:700;color:var(--amber);}
+  .stat .lbl{font-size:.7rem;color:var(--muted);margin-top:2px;}
+  label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:5px;margin-top:12px;}
+  label:first-child{margin-top:0;}
+  input[type=number], input[type=date], input[type=text], input[type=email], input[type=password], input[type=tel]{
+    width:100%;
+    padding:11px 12px;
+    background:var(--card2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    color:var(--text);
+    font-size:1rem;
+  }
+  input:focus{outline:1px solid var(--amber);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .checkbox-row{display:flex;align-items:center;gap:8px;margin-top:14px;}
+  .checkbox-row input{width:18px;height:18px;}
+  .checkbox-row span{font-size:.85rem;color:var(--text);}
+  button{border:none;border-radius:10px;padding:13px;font-size:.95rem;font-weight:600;cursor:pointer;}
+  .btn-primary{width:100%;margin-top:16px;background:var(--amber);color:#1a1200;}
+  .btn-primary.blue{background:var(--blue);color:#051324;}
+  .btn-primary.purple{background:var(--purple);color:#210a3d;}
+  .btn-primary.green{background:var(--green);color:#052014;}
+  .btn-primary:active{filter:brightness(0.9);}
+  .btn-row{display:flex;gap:10px;margin-top:10px;}
+  .btn-secondary{flex:1;background:var(--card2);color:var(--text);border:1px solid var(--border);font-weight:500;font-size:.82rem;}
+  .entry{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:8px;border-left:3px solid var(--border);}
+  .entry.full{border-left-color:var(--amber);}
+  .entry-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .entry-top .date{font-weight:600;font-size:.9rem;}
+  .entry-top .del{color:var(--red);font-size:1.1rem;background:none;border:none;padding:0 4px;cursor:pointer;}
+  .entry-meta{font-size:.8rem;color:var(--muted);margin-top:4px;}
+  .entry-consum{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:.85rem;display:flex;justify-content:space-between;}
+  .entry-consum .c-val{color:var(--green);font-weight:700;}
+  .empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:.9rem;}
+  .badge{font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-block;}
+  .badge-balast{background:rgba(79,157,255,.15);color:var(--blue);}
+  .badge-agregate{background:rgba(62,207,142,.15);color:var(--green);}
+  .badge-concasat{background:rgba(245,166,35,.15);color:var(--amber);}
+  .badge-altele{background:rgba(179,133,245,.15);color:var(--purple);}
+  .sort-breakdown{display:flex;flex-direction:column;gap:8px;margin-bottom:4px;}
+  .sort-row{display:flex;justify-content:space-between;align-items:center;background:var(--card2);padding:9px 12px;border-radius:9px;font-size:.85rem;}
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.65);
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;padding:20px;
+  }
+  .modal-box{
+    background:var(--card);border:1px solid var(--amber);border-radius:16px;
+    padding:22px;max-width:400px;width:100%;
+  }
+  .modal-box h3{margin:0 0 10px;color:var(--amber);font-size:1.1rem;}
+  .modal-box p{margin:0 0 14px;font-size:.87rem;color:var(--muted);line-height:1.45;}
+  .month-info{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-bottom:10px;}
+  .month-info b{color:var(--text);}
+  .tip-select{display:flex;gap:8px;margin-top:6px;}
+  .tip-opt{
+    flex:1;background:var(--card2);border:1px solid var(--border);border-radius:10px;
+    padding:12px 8px;text-align:center;cursor:pointer;font-size:.8rem;color:var(--muted);
+  }
+  .tip-opt.selected{border-color:var(--green);background:rgba(62,207,142,.12);color:var(--text);}
+  .tip-opt .suma{display:block;font-size:1.05rem;font-weight:700;color:var(--green);margin-top:2px;}
+  .month-card{background:var(--card2);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);}
+  .month-card .month-title{font-weight:700;font-size:.95rem;color:var(--amber);margin-bottom:10px;text-transform:capitalize;}
+  .month-card .row{display:flex;justify-content:space-between;font-size:.82rem;padding:5px 0;border-bottom:1px dashed var(--border);}
+  .month-card .row:last-child{border-bottom:none;}
+  .month-card .row span:last-child{color:var(--text);font-weight:600;}
+  .login-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .login-box{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:26px 22px;max-width:380px;width:100%;
+  }
+  .login-box h1{margin:0 0 4px;font-size:1.3rem;text-align:center;}
+  .login-box .sub{color:var(--muted);font-size:.82rem;text-align:center;margin-bottom:20px;}
+  .login-error{
+    background:rgba(229,72,77,.12);border:1px solid var(--red);color:var(--red);
+    border-radius:9px;padding:9px 12px;font-size:.82rem;margin-top:10px;display:none;
+  }
+  .login-hint{color:var(--muted);font-size:.75rem;margin-top:10px;text-align:center;}
+  .app-hidden{display:none;}
+  .topbar-user{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--card2);border:1px solid var(--border);border-radius:10px;
+    padding:9px 12px;margin-bottom:14px;font-size:.82rem;
+  }
+  .topbar-user .logout-btn{
+    background:none;border:none;color:var(--red);font-size:.78rem;font-weight:600;padding:2px 6px;
+  }
+  .sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px;}
+  .sync-dot.offline{background:var(--red);}
+  .loc-row{display:flex;gap:8px;align-items:flex-end;}
+  .loc-row input{flex:1;}
+  .btn-map-pick{
+    flex:0 0 auto;background:var(--card2);color:var(--purple);border:1px solid var(--purple);
+    border-radius:9px;padding:0 14px;font-size:.8rem;font-weight:600;white-space:nowrap;height:44px;
+  }
+  .map-modal-box{
+    background:var(--card);border:1px solid var(--purple);border-radius:16px;
+    padding:18px;max-width:480px;width:100%;
+  }
+  .map-modal-box h3{margin:0 0 10px;color:var(--purple);font-size:1.05rem;}
+  .map-search-row{display:flex;gap:8px;margin-bottom:10px;}
+  .map-search-row input{flex:1;}
+  .map-search-row button{flex:0 0 auto;background:var(--purple);color:#210a3d;border-radius:9px;padding:0 14px;font-size:.85rem;}
+  #pickMapDiv{
+    width:100%;height:280px;border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px;
+  }
+  .map-picked-addr{font-size:.78rem;color:var(--muted);margin-bottom:10px;min-height:16px;}
+  .map-hint{font-size:.72rem;color:var(--muted);margin-bottom:10px;}
+  
+  .btn-camera{
+    background:var(--blue);color:#051324;margin-top:12px;width:100%;font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  #cameraInput{display:none;}
+  
+  .processing-modal{display:flex;}
+  .processing-spinner{
+    width:50px;height:50px;border:4px solid var(--border);border-top:4px solid var(--blue);
+    border-radius:50%;animation:spin 1s linear infinite;margin:20px auto;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  
+  .preview-modal-box{
+    background:var(--card);border:1px solid var(--blue);border-radius:16px;
+    padding:18px;max-width:480px;width:100%;
+  }
+  .preview-modal-box h3{margin:0 0 10px;color:var(--blue);font-size:1.05rem;}
+  .preview-image{width:100%;max-height:200px;border-radius:10px;margin-bottom:10px;object-fit:cover;}
+  .preview-data{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:10px;font-size:.85rem;line-height:1.5;}
+  .preview-data strong{color:var(--blue);}
+</style>
+</head>
+<body>
+
+<!-- ===== SETUP GEMINI API ===== -->
+<div class="modal-overlay" id="setupGeminiModal" style="display:none;">
+  <div class="modal-box">
+    <h3>🔑 Configurare AI (Gemini)</h3>
+    <p>Introdu API key-ul tău de la <a href="https://aistudio.google.com/app/apikeys" target="_blank" style="color:var(--blue);">Google AI Studio</a> (gratuit, 60 apeluri/min).</p>
+    <label>API Key Gemini</label>
+    <input type="password" id="geminiApiKey" placeholder="Paste API key..." style="font-family:monospace;font-size:.9rem;">
+    <button class="btn-primary blue" onclick="saveGeminiKey()">Salvează API Key</button>
+    <div class="btn-row"><button class="btn-secondary" onclick="skipGeminiSetup()">Continua fără AI</button></div>
+  </div>
+</div>
+
+<!-- ===== ECRAN LOGIN ===== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <h1>🚛 La Basculă.Ro</h1>
+    <div class="sub">Sistem de management transport</div>
+
+    <label>Email</label>
+    <input type="email" id="loginEmail" placeholder="ex: razvan@gmail.com" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <label>Parolă</label>
+    <input type="text" id="loginParola" placeholder="parola ta" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" style="-webkit-text-security:disc;text-security:disc;">
+
+    <button class="btn-primary" onclick="doLogin()">Intră în cont</button>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="doSignup()">Creează cont nou</button>
+    </div>
+
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">Fiecare șofer are cont propriu (email + parolă) -- datele lui se salvează separat, în siguranță.</div>
+  </div>
+</div>
+
+<!-- ===== APLICATIA ===== -->
+<div id="appRoot" class="app-hidden">
+
+<header>
+  <h1>🚛 La Basculă.Ro</h1>
+  <div class="sub" id="headerSub">Manager transport · v12</div>
+</header>
+
+<div class="header-dashboard">
+  <div class="hd-box">
+    <div class="hd-val" id="topHeaderDays">–</div>
+    <div class="hd-lbl">Zile muncite luna asta</div>
+  </div>
+  <div class="hd-box">
+    <div class="hd-val" id="topHeaderFuel" style="color:var(--green)">–</div>
+    <div class="hd-lbl">Rație motorină</div>
+  </div>
+  <div class="acts-bar" id="actsBar"></div>
+</div>
+
+<div class="wrap">
+
+  <div class="topbar-user">
+    <span><span class="sync-dot" id="syncDot"></span><span id="userLabel">–</span></span>
+    <span style="display:flex;gap:8px;">
+      <button class="logout-btn" style="color:var(--blue);padding:2px 6px;font-size:.75rem;" onclick="openGeminiSettings()">⚙️ AI</button>
+      <button class="logout-btn" onclick="doLogout()">Ieși din cont</button>
+    </span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="combustibil" onclick="switchTab('combustibil')">Combustibil</div>
+    <div class="tab" data-tab="curse" onclick="switchTab('curse')">Tonaj</div>
+    <div class="tab" data-tab="platite" onclick="switchTab('platite')">Curse plătite</div>
+    <div class="tab" data-tab="sambete" onclick="switchTab('sambete')">Sâmbete</div>
+    <div class="tab" data-tab="salariu" onclick="switchTab('salariu')">Salariu</div>
+    <div class="tab" data-tab="km" onclick="switchTab('km')">Km lunar</div>
+    <div class="tab" data-tab="advisor" onclick="switchTab('advisor')">🤖 AI Advisor</div>
+    <div class="tab" data-tab="istoric" onclick="switchTab('istoric')">Istoric</div>
+    <div class="tab" data-tab="clienti" onclick="switchTab('clienti')">Clienți</div>
+    <div class="tab" data-tab="acte" onclick="switchTab('acte')">Acte camioane</div>
+    <div class="tab" data-tab="service" onclick="switchTab('service')">Service</div>
+  </div>
+
+  <!-- ===== TAB COMBUSTIBIL ===== -->
+  <div class="section active" id="tab-combustibil">
+    <div class="card">
+      <h2>Statistici consum</h2>
+      <div class="stats">
+        <div class="stat"><div class="val" id="statAvg">–</div><div class="lbl">Mediu L/100km</div></div>
+        <div class="stat"><div class="val" id="statLast">–</div><div class="lbl">Ultimul consum</div></div>
+        <div class="stat"><div class="val" id="statKm">–</div><div class="lbl">Total km parcurși</div></div>
+        <div class="stat"><div class="val" id="statLitri">–</div><div class="lbl">Total litri</div></div>
+      </div>
+      <div class="sort-row" id="provRow" style="margin-top:10px;display:none;">
+        <span id="provLabel">Consum de la ultimul plin (provizoriu)</span>
+        <b class="c-val" id="provVal" style="color:var(--green);">–</b>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Alimentare nouă</h2>
+      <label>Data</label>
+      <input type="date" id="inpData">
+      <div class="row2">
+        <div><label>Kilometraj (bord)</label><input type="number" id="inpKm" placeholder="ex: 254300" inputmode="numeric"></div>
+        <div><label>Litri alimentați</label><input type="number" id="inpLitri" placeholder="ex: 320" step="0.01" inputmode="decimal"></div>
+      </div>
+      <label>Preț / litru (opțional, lei)</label>
+      <input type="number" id="inpPret" placeholder="ex: 6.85" step="0.01" inputmode="decimal">
+      <div class="checkbox-row">
+        <input type="checkbox" id="inpFull" checked>
+        <span>Plin de tot (rezervor plin)</span>
+      </div>
+      <button class="btn-camera" id="btnCameraBon" onclick="openCamera('bon')">📷 Fotografiază bon motorină</button>
+      <button class="btn-primary" id="btnAddFuel" onclick="addEntry()">Adaugă alimentare</button>
+      <div class="btn-row" id="btnCancelFuelEdit" style="display:none;">
+        <button class="btn-secondary" onclick="cancelFuelEdit()">Anulează modificarea</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Istoric alimentări</h2>
+      <div id="listWrap"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="exportFuelCSV()">Export CSV</button>
+        <button class="btn-secondary" onclick="clearFuel()">Șterge tot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB CURSE / TONAJ ===== -->
+  <div class="section" id="tab-curse">
+    <div class="card">
+      <h2 class="purple">Tonaj luna aceasta</h2>
+      <div class="stats" style="margin-bottom:10px;">
+        <div class="stat"><div class="val" id="tripTotalTone">–</div><div class="lbl">Tone total</div></div>
+        <div class="stat"><div class="val" id="tripTotalCurse">–</div><div class="lbl">Nr. curse</div></div>
+        <div class="stat" style="grid-column:1/-1;"><div class="val" id="tripMonthAvg">–</div><div class="lbl">Medie lunară (t/cursă)</div></div>
+      </div>
+      <div class="sort-breakdown" id="sortBreakdown"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="purple">Tonaj azi</h2>
+      <div class="stats">
+        <div class="stat"><div class="val" id="tripTodayCurse">–</div><div class="lbl">Curse azi</div></div>
+        <div class="stat"><div class="val" id="tripTodayAvg">–</div><div class="lbl">Medie azi (t/cursă)</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="purple">Cursă nouă</h2>
+      <label>Data</label>
+      <input type="date" id="tripData">
+      <label>Sort / material</label>
+      <input type="text" id="tripSort" list="sortList" placeholder="ex: Balast, 8/16 conc...">
+      <datalist id="sortList">
+        <option value="Balast"><option value="0/4 nat"><option value="4/8 nat"><option value="8/16 nat"><option value="16/31 nat"><option value="0/63 nat"><option value="0/4 conc"><option value="4/8 conc"><option value="8/16 conc"><option value="16/31 conc"><option value="0/63 conc"><option value="Piatră spartă"><option value="Nisip"><option value="Split">
+      </datalist>
+      <div class="row2">
+        <div><label>Tonaj (tone)</label><input type="number" id="tripTonaj" placeholder="ex: 24" step="0.1" inputmode="decimal"></div>
+        <div><label>Destinație (opțional)</label><input type="text" id="tripDest" placeholder="șantier / client"></div>
+      </div>
+      <button class="btn-camera" id="btnCameraAviz" onclick="openCamera('aviz')">📷 Fotografiază avize (2 imagini)</button>
+      <button class="btn-primary purple" id="btnAddTrip" onclick="addTrip()">Adaugă cursă</button>
+      <div class="btn-row" id="btnCancelTripEdit" style="display:none;">
+        <button class="btn-secondary" onclick="cancelTripEdit()">Anulează modificarea</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="purple">Curse recente</h2>
+      <div id="tripListWrap"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="exportTripsCSV()">Export CSV</button>
+        <button class="btn-secondary" onclick="clearTrips()">Șterge tot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB CURSE PLATITE ===== -->
+  <div class="section" id="tab-platite">
+    <div class="card">
+      <h2 style="color:var(--green);">Total luna aceasta</h2>
+      <div class="stats">
+        <div class="stat"><div class="val" id="platTotalCurse">–</div><div class="lbl">Nr. curse</div></div>
+        <div class="stat"><div class="val" id="platTotalSuma">–</div><div class="lbl">Total lei</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="color:var(--green);">Cursă nouă</h2>
+      <label>Data</label>
+      <input type="date" id="platData">
+      <label>Locație</label>
+      <input type="text" id="platLocatie" placeholder="ex: cariera X, șantier Y...">
+      <label>Tip cursă</label>
+      <div class="tip-select">
+        <div class="tip-opt selected" id="tipTurBtn" onclick="selectTip('tur')">Tur (sub 30 km)<span class="suma">35 lei</span></div>
+        <div class="tip-opt" id="tipReturBtn" onclick="selectTip('retur')">Tur + retur (pământ)<span class="suma">70 lei</span></div>
+      </div>
+      <button class="btn-primary" id="btnAddPaid" style="background:var(--green);color:#062017;" onclick="addPaidTrip()">Adaugă cursă</button>
+      <div class="btn-row" id="btnCancelPaidEdit" style="display:none;">
+        <button class="btn-secondary" onclick="cancelPaidEdit()">Anulează modificarea</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="color:var(--green);">Istoric curse plătite</h2>
+      <div id="platListWrap"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="exportPaidCSV()">Export CSV</button>
+        <button class="btn-secondary" onclick="clearPaid()">Șterge tot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB SAMBETE ===== -->
+  <div class="section" id="tab-sambete">
+    <div class="card">
+      <h2 style="color:var(--amber);">Sâmbete Lucrate</h2>
+      <div class="stats" style="margin-bottom:14px;">
+        <div class="stat"><div class="val" id="satTotalCount">–</div><div class="lbl">Sâmbete luna asta</div></div>
+        <div class="stat"><div class="val" id="satTotalBonus">–</div><div class="lbl">Bonus total (lei)</div></div>
+      </div>
+      <label>Data sâmbetei lucrate</label>
+      <input type="date" id="satData">
+      <label>Notițe / Șantier (opțional)</label>
+      <input type="text" id="satNote" placeholder="ex: cursă specială sau program scurt">
+      <button class="btn-primary" onclick="addSaturday()">Pontare sâmbătă (+100 lei)</button>
+    </div>
+    <div class="card">
+      <h2 style="color:var(--amber);">Istoric sâmbete</h2>
+      <div id="satListWrap"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB SALARIU ===== -->
+  <div class="section" id="tab-salariu">
+    <div class="card">
+      <h2 class="green">Calcul Salariu Lunar</h2>
+      <div class="stats" style="margin-bottom:14px;">
+        <div class="stat" style="grid-column:1/-1;"><div class="val" id="salTotalFinal" style="font-size:1.8rem;color:var(--green)">–</div><div class="lbl">Salariu estimat total (lei)</div></div>
+      </div>
+      <div class="sort-breakdown" id="salBreakdown"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB KM LUNAR ===== -->
+  <div class="section" id="tab-km">
+    <div class="card">
+      <h2 class="blue">Kilometraj -- luna curentă</h2>
+      <div class="month-info"><span>Perioadă începută</span><b id="kmDataStart">–</b></div>
+      <div class="month-info"><span>Km la început de lună</span><b id="kmStart">–</b></div>
+      <div class="month-info"><span>Ultima zi închisă</span><b id="kmCurrentDate">–</b></div>
+      <div class="stats">
+        <div class="stat"><div class="val" id="kmParcursi">–</div><div class="lbl">Km parcurși luna asta</div></div>
+      </div>
+      <button class="btn-primary blue" onclick="openDailyCloseModal()">🕔 Închide ziua de azi</button>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="manualMonthReset()">Începe manual lună nouă</button>
+      </div>
+    </div>
+    <div class="card"><h2 class="blue">Jurnal zilnic</h2><div id="dailyKmWrap"></div></div>
+    <div class="card"><h2 class="blue">Istoric luni închise</h2><div id="monthHistoryWrap"></div></div>
+  </div>
+
+  <!-- ===== TAB AI ADVISOR ===== -->
+  <div class="section" id="tab-advisor">
+    <div class="card">
+      <h2 class="blue">🤖 AI Advisor - Eficiență</h2>
+      <p style="font-size:.9rem;color:var(--muted);margin-bottom:14px;">Analiză inteligentă a consumului și tonajului. Sfaturi personalizate pentru cursa următoare.</p>
+      <div class="stats">
+        <div class="stat"><div class="val" id="advisorLastConsum">–</div><div class="lbl">Ultimul consum</div></div>
+        <div class="stat"><div class="val" id="advisorAvgConsum">–</div><div class="lbl">Mediu lunar</div></div>
+        <div class="stat"><div class="val" id="advisorLastTonaj">–</div><div class="lbl">Ultimul tonaj</div></div>
+        <div class="stat"><div class="val" id="advisorAvgTonaj">–</div><div class="lbl">Mediu lunar</div></div>
+      </div>
+      <button class="btn-primary blue" onclick="getAdvisorRecommendation()">🔍 Analizează eficiență</button>
+    </div>
+    <div class="card">
+      <h2 class="blue">Recomandări</h2>
+      <div id="advisorWrap" class="empty" style="padding:20px;">Click "Analizează eficiență" pentru recomandări personalizate...</div>
+    </div>
+  </div>
+
+  <!-- ===== TAB ISTORIC ===== -->
+  <div class="section" id="tab-istoric">
+    <div class="card"><h2>Istoric complet pe luni</h2><div id="istoricWrap"></div></div>
+  </div>
+
+  <!-- ===== TAB CLIENTI ===== -->
+  <div class="section" id="tab-clienti">
+    <div class="card">
+      <h2 style="color:var(--purple);">Client nou</h2>
+      <label>Nume client / șantier</label>
+      <input type="text" id="clNume" placeholder="ex: Cariera Măgurele">
+      <label>Telefon</label>
+      <input type="tel" id="clTelefon" placeholder="ex: 0722 123 456" inputmode="tel">
+      <label>Locație (link Maps sau adresă)</label>
+      <div class="loc-row">
+        <input type="text" id="clLocatie" placeholder="lipește link Google Maps sau scrie adresa">
+        <button type="button" class="btn-map-pick" onclick="openMapPicker()">🗺️ Alege pe hartă</button>
+      </div>
+      <label>Notițe (opțional)</label>
+      <input type="text" id="clNotite" placeholder="ex: intrare pe poarta din spate">
+      <button class="btn-primary" id="btnAddClient" style="background:var(--purple);color:#210a3d;" onclick="addClient()">Adaugă client</button>
+      <div class="btn-row" id="btnCancelClientEdit" style="display:none;">
+        <button class="btn-secondary" onclick="cancelClientEdit()">Anulează modificarea</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="color:var(--purple);">Clienți salvați</h2>
+      <input type="text" id="clSearch" placeholder="Caută după nume..." oninput="renderClients()" style="margin-bottom:12px;">
+      <div id="clientListWrap"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="exportClientsCSV()">Export CSV</button>
+        <button class="btn-secondary" onclick="clearClients()">Șterge tot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB ACTE ===== -->
+  <div class="section" id="tab-acte">
+    <div class="card">
+      <h2>📅 Valabilitate Acte Camion</h2>
+      <label>ITP</label><input type="date" id="actItp" onchange="saveActs()">
+      <label>RCA</label><input type="date" id="actRca" onchange="saveActs()">
+      <label>Rovigneta</label><input type="date" id="actRov" onchange="saveActs()">
+      <label>Tahograf</label><input type="date" id="actTaho" onchange="saveActs()">
+      <label>Autorizație</label><input type="date" id="actAuth" onchange="saveActs()">
+    </div>
+  </div>
+
+  <!-- ===== TAB SERVICE ===== -->
+  <div class="section" id="tab-service">
+    <div class="card">
+      <h2>🔧 Service luna aceasta</h2>
+      <div class="stats">
+        <div class="stat"><div class="val" id="svTotalCount">–</div><div class="lbl">Intervenții</div></div>
+        <div class="stat"><div class="val" id="svTotalBani">–</div><div class="lbl">Bani service (lei)</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Intervenție nouă</h2>
+      <label>Data</label><input type="date" id="svData">
+      <label>Tip</label>
+      <div class="tip-select">
+        <div class="tip-opt selected" id="tipGresareBtn" onclick="selectServiceTip('gresare')">Gresare<span class="suma">gratuit</span></div>
+        <div class="tip-opt" id="tipServiceBtn" onclick="selectServiceTip('service')">Service<span class="suma">50 lei</span></div>
+      </div>
+      <label>Descriere operațiune</label>
+      <input type="text" id="svDescriere" placeholder="ex: schimb ulei + filtre, gresare osii...">
+      <button class="btn-primary" id="btnAddService" onclick="addService()">Adaugă intervenție</button>
+      <div class="btn-row" id="btnCancelServiceEdit" style="display:none;">
+        <button class="btn-secondary" onclick="cancelServiceEdit()">Anulează modificarea</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Istoric service</h2>
+      <div id="serviceListWrap"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="exportServiceCSV()">Export CSV</button>
+        <button class="btn-secondary" onclick="clearService()">Șterge tot</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modale -->
+<div class="modal-overlay" id="mapPickModal" style="display:none;">
+  <div class="map-modal-box">
+    <h3>🗺️ Alege locația pe hartă</h3>
+    <div class="map-search-row">
+      <input type="text" id="mapSearchInput" placeholder="Caută adresă / șantier / oraș..." onkeydown="if(event.key==='Enter'){event.preventDefault();searchMapAddress();}">
+      <button type="button" onclick="searchMapAddress()">Caută</button>
+    </div>
+    <div class="map-hint">Apasă pe hartă, folosește GPS-ul sau trage pinul ca să ajustezi poziția exactă.</div>
+    <div id="pickMapDiv"></div>
+    <div class="map-picked-addr" id="mapPickedAddr">Nicio poziție aleasă încă.</div>
+    <button class="btn-primary blue" style="margin-top:6px;" onclick="useCurrentGpsLocation()">📍 Folosește GPS-ul meu actual</button>
+    <button class="btn-primary purple" onclick="confirmMapPick()">Salvează locația</button>
+    <div class="btn-row"><button class="btn-secondary" onclick="closeMapPicker()">Anulează</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="resetModal" style="display:none;">
+  <div class="modal-box">
+    <h3>📅 Lună nouă de lucru</h3>
+    <p>A început prima zi lucrătoare a lunii. Introdu kilometrajul curent de la bord.</p>
+    <label>Kilometraj curent (bord)</label>
+    <input type="number" id="modalKmInput" placeholder="ex: 258400" inputmode="numeric">
+    <button class="btn-primary blue" onclick="confirmMonthReset()">Salvează și începe luna nouă</button>
+    <div class="btn-row"><button class="btn-secondary" onclick="postponeReset()">Amână</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dailyCloseModal" style="display:none;">
+  <div class="modal-box">
+    <h3>🕔 Sfârșit de program</h3>
+    <p id="dailyCloseText">Introdu kilometrajul de la bord cu care ai terminat ziua.</p>
+    <label>Kilometraj curent (bord)</label>
+    <input type="number" id="dailyCloseInput" placeholder="ex: 258650" inputmode="numeric">
+    <button class="btn-primary blue" onclick="confirmDailyClose()">Salvează ziua</button>
+    <div class="btn-row"><button class="btn-secondary" onclick="postponeDailyClose()">Amână</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="processingModal" style="display:none;">
+  <div class="modal-box" style="text-align:center;">
+    <h3>⏳ Procesez imaginea...</h3>
+    <div class="processing-spinner"></div>
+    <p style="color:var(--muted);font-size:.85rem;">Analizez detaliile cu AI...</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="previewModal" style="display:none;">
+  <div class="preview-modal-box">
+    <h3>✅ Date extrase</h3>
+    <img id="previewImage" class="preview-image">
+    <div class="preview-data" id="previewData"></div>
+    <button class="btn-primary blue" onclick="confirmExtractedData()">Completează formularul</button>
+    <div class="btn-row"><button class="btn-secondary" onclick="cancelPreview()">Anulează</button></div>
+  </div>
+</div>
+
+<input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="processCameraImage()">
+
+</div>
+
+<script>
+window.onerror = function(msg, url, line, col, err){
+  try{
+    const el = document.getElementById('loginError');
+    if(el){
+      el.textContent = 'Eroare tehnică: ' + msg + ' (linia ' + line + ')';
+      el.style.display = 'block';
+    }
+  }catch(e){}
+  return false;
+};
+</script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCigD8dsroW7DsJWOicoh0M2rchrbI1cGc",
+  authDomain: "istoric-camion.firebaseapp.com",
+  databaseURL: "https://istoric-camion-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "istoric-camion",
+  storageBucket: "istoric-camion.firebasestorage.app",
+  messagingSenderId: "826051116439",
+  appId: "1:826051116439:web:a83f9de8b502f1b7a1d8d2"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+let currentUid = null;
+let currentNume = null;
+let fbReady = false;
+
+function emailFor(nume){ return nume.trim().toLowerCase(); }
+function displayNameFromEmail(email){
+  const local = email.split('@')[0];
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+function showLoginError(msg){
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideLoginError(){ document.getElementById('loginError').style.display = 'none'; }
+function setLoginBusy(busy){ document.querySelectorAll('#loginScreen button').forEach(b => b.disabled = busy); }
+
+function doLogin(){
+  hideLoginError();
+  const email = document.getElementById('loginEmail').value.trim();
+  const parola = document.getElementById('loginParola').value;
+  if(!email || !parola){ showLoginError('Completează email-ul și parola.'); return; }
+  setLoginBusy(true);
+  auth.signInWithEmailAndPassword(emailFor(email), parola)
+    .then(cred => { currentNume = displayNameFromEmail(email); })
+    .catch(err => {
+      setLoginBusy(false);
+      if(err.code === 'auth/user-not-found'){ showLoginError('Nu există cont cu acest email.'); }
+      else if(err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'){ showLoginError('Email sau parolă greșite.'); }
+      else { showLoginError('Eroare: ' + err.message); }
+    });
+}
+function doSignup(){
+  hideLoginError();
+  const email = document.getElementById('loginEmail').value.trim();
+  const parola = document.getElementById('loginParola').value;
+  if(!email || !parola){ showLoginError('Completează email-ul și parola.'); return; }
+  if(parola.length < 6){ showLoginError('Parola trebuie să aibă minim 6 caractere.'); return; }
+  setLoginBusy(true);
+  auth.createUserWithEmailAndPassword(emailFor(email), parola)
+    .then(cred => {
+      currentNume = displayNameFromEmail(email);
+      return db.ref('users/'+cred.user.uid+'/profile').set({ nume: currentNume, email: email });
+    })
+    .catch(err => {
+      setLoginBusy(false);
+      if(err.code === 'auth/email-already-in-use'){ showLoginError('Există deja un cont cu acest email.'); }
+      else { showLoginError('Eroare: ' + err.message); }
+    });
+}
+function doLogout(){
+  if(!confirm('Ieși din cont pe acest telefon?')) return;
+  fbReady = false;
+  detachSharedClients();
+  stopLocationTracking();
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  if(user){
+    currentUid = user.uid;
+    document.getElementById('loginScreen').classList.add('app-hidden');
+    document.getElementById('appRoot').classList.remove('app-hidden');
+    loadUserData();
+    attachSharedClients();
+    startLocationTracking();
+    initGemini();
+  } else {
+    currentUid = null;
+    fbReady = false;
+    detachSharedClients();
+    stopLocationTracking();
+    document.getElementById('appRoot').classList.add('app-hidden');
+    document.getElementById('loginScreen').classList.remove('app-hidden');
+    document.getElementById('loginParola').value = '';
+    setLoginBusy(false);
+  }
+});
+
+let geoWatchId = null;
+let lastLocWriteAt = 0;
+function startLocationTracking(){
+  if(!navigator.geolocation || geoWatchId !== null) return;
+  geoWatchId = navigator.geolocation.watchPosition(pos=>{
+    const now = Date.now();
+    if(now - lastLocWriteAt < 20000) return;
+    lastLocWriteAt = now;
+    if(!currentUid) return;
+    db.ref('users/'+currentUid+'/location').set({
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      acc: pos.coords.accuracy || null,
+      ts: now
+    });
+  }, err=>{
+    console.warn('Locație indisponibilă:', err.message);
+  }, { enableHighAccuracy:false, maximumAge:15000, timeout:20000 });
+}
+function stopLocationTracking(){
+  if(geoWatchId !== null){
+    navigator.geolocation.clearWatch(geoWatchId);
+    geoWatchId = null;
+  }
+}
+
+const sharedClientsRef = db.ref('sharedClients');
+let sharedClientsMigrated = false;
+function attachSharedClients(){
+  sharedClientsRef.on('value', snap => {
+    const val = snap.val() || {};
+    const list = Object.keys(val).map(id => ({ id: isNaN(+id)?id:+id, ...val[id] }));
+    list.sort((a,b)=> (a.nume||'').localeCompare(b.nume||'', 'ro'));
+    if(list.length === 0 && !sharedClientsMigrated){
+      sharedClientsMigrated = true;
+      const legacy = load(KEY_CLIENTS, []);
+      if(legacy.length){
+        const updates = {};
+        legacy.forEach(c => { updates[c.id] = { nume:c.nume, telefon:c.telefon||null, locatie:c.locatie||null, notite:c.notite||null }; });
+        sharedClientsRef.update(updates);
+        return;
+      }
+    }
+    clients = list;
+    localStorage.setItem(KEY_CLIENTS, JSON.stringify(clients));
+    renderClients();
+  });
+}
+function detachSharedClients(){ sharedClientsRef.off(); }
+
+function loadUserData(){
+  const localEntries = load(KEY_FUEL, []);
+  const localTrips = load(KEY_TRIPS, []);
+  const localMonths = load(KEY_MONTHS, []);
+  const localPaid = load(KEY_PAID, []);
+  const localDaily = load(KEY_DAILY, []);
+  const localSaturdays = load(KEY_SATURDAYS, []);
+  const localActs = load(KEY_ACTS, {itp:'', rca:'', rov:'', taho:'', auth:''});
+  const localService = load(KEY_SERVICE, []);
+  
+  db.ref('users/'+currentUid).once('value').then(snap => {
+    const remote = snap.val() || {};
+    document.getElementById('userLabel').textContent = (remote.profile && remote.profile.nume) ? remote.profile.nume : (currentNume || 'Șofer');
+
+    entries = remote.entries || localEntries;
+    trips = remote.trips || localTrips;
+    months = remote.months || localMonths;
+    paidTrips = remote.paidTrips || localPaid;
+    dailyKm = remote.dailyKm || localDaily;
+    saturdays = remote.saturdays || localSaturdays;
+    truckActs = remote.truckActs || localActs;
+    serviceEntries = remote.serviceEntries || localService;
+
+    fbReady = true;
+    document.getElementById('actItp').value = truckActs.itp || '';
+    document.getElementById('actRca').value = truckActs.rca || '';
+    document.getElementById('actRov').value = truckActs.rov || '';
+    document.getElementById('actTaho').value = truckActs.taho || '';
+    document.getElementById('actAuth').value = truckActs.auth || '';
+
+    renderFuel(); renderTrips(); renderPaid(); renderSaturdays(); renderService(); renderKm(); renderIstoric(); renderSalariu(); renderHeaderDashboard();
+    updateAdvisorMetrics();
+    checkMonthlyReset();
+    checkDailyClosePrompt();
+    setSyncStatus(true);
+  }).catch(err => {
+    console.error(err);
+    setSyncStatus(false);
+    fbReady = true;
+    renderFuel(); renderTrips(); renderPaid(); renderSaturdays(); renderService(); renderKm(); renderIstoric(); renderSalariu(); renderHeaderDashboard();
+  });
+}
+
+function pushAll(){
+  save(KEY_FUEL, entries); save(KEY_TRIPS, trips); save(KEY_MONTHS, months); save(KEY_PAID, paidTrips); save(KEY_DAILY, dailyKm); save(KEY_SATURDAYS, saturdays); save(KEY_ACTS, truckActs); save(KEY_SERVICE, serviceEntries);
+}
+
+function setSyncStatus(online){
+  const dot = document.getElementById('syncDot');
+  if(dot) dot.classList.toggle('offline', !online);
+}
+
+const KEY_FUEL = 'consum_camion_v1';
+const KEY_TRIPS = 'consum_camion_trips_v1';
+const KEY_MONTHS = 'consum_camion_luni_v1';
+const KEY_POSTPONE = 'consum_camion_amanat_v1';
+const KEY_POSTPONE_DAILY = 'consum_camion_amanat_zi_v1';
+const KEY_PAID = 'consum_camion_platite_v1';
+const KEY_DAILY = 'consum_camion_zilnic_v1';
+const KEY_CLIENTS = 'consum_camion_clienti_v1';
+const KEY_SATURDAYS = 'consum_camion_sambete_v1';
+const KEY_ACTS = 'consum_camion_acte_v1';
+const KEY_SERVICE = 'consum_camion_service_v1';
+
+const FB_PATHS = { 
+  'consum_camion_v1':'entries', 
+  'consum_camion_trips_v1':'trips', 
+  'consum_camion_luni_v1':'months', 
+  'consum_camion_platite_v1':'paidTrips', 
+  'consum_camion_zilnic_v1':'dailyKm',
+  'consum_camion_sambete_v1':'saturdays',
+  'consum_camion_acte_v1':'truckActs',
+  'consum_camion_service_v1':'serviceEntries'
+};
+
+function load(key, fallback){
+  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+  catch(e){ return fallback; }
+}
+function save(key, data){
+  localStorage.setItem(key, JSON.stringify(data));
+  if(currentUid && FB_PATHS[key]){
+    db.ref('users/'+currentUid+'/'+FB_PATHS[key]).set(data)
+      .then(()=> setSyncStatus(true))
+      .catch(err=>{ console.error('Firebase save error', err); setSyncStatus(false); });
+  }
+}
+
+let entries = [];
+let trips = [];
+let months = []; 
+let paidTrips = []; 
+let dailyKm = []; 
+let clients = []; 
+let saturdays = [];
+let truckActs = {itp:'', rca:'', rov:'', taho:'', auth:''};
+let serviceEntries = [];
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=> t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.section').forEach(s=> s.classList.toggle('active', s.id === 'tab-'+name));
+  if(name === 'salariu') renderSalariu();
+  if(name === 'advisor') updateAdvisorMetrics();
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+function monthKeyOf(dateStr){ return dateStr.slice(0,7); }
+function fmtDate(s){
+  if(!s) return '–';
+  return new Date(s).toLocaleDateString('ro-RO');
+}
+function getFirstMonday(year, monthIndex0){
+  let d = new Date(year, monthIndex0, 1);
+  let day = d.getDay();
+  let diff = (day === 0) ? 1 : (day === 1 ? 0 : 8 - day);
+  d.setDate(1 + diff);
+  return d;
+}
+function classifySort(sort){
+  const s = (sort||'').toLowerCase();
+  if(s.includes('balast')) return 'balast';
+  if(s.includes('nat')) return 'agregate';
+  if(s.includes('conc')) return 'concasat';
+  return 'altele';
+}
+function sortLabel(cls){
+  return {balast:'Balast', agregate:'Agregate naturale', concasat:'Concasată', altele:'Altele'}[cls];
+}
+
+document.getElementById('satData').valueAsDate = new Date();
+
+function saveActs(){
+  truckActs = {
+    itp: document.getElementById('actItp').value,
+    rca: document.getElementById('actRca').value,
+    rov: document.getElementById('actRov').value,
+    taho: document.getElementById('actTaho').value,
+    auth: document.getElementById('actAuth').value
+  };
+  save(KEY_ACTS, truckActs);
+  renderHeaderDashboard();
+}
+
+function getActStatusClass(dateStr){
+  if(!dateStr) return {cls:'act-green', text:'N/A'};
+  const today = new Date(); today.setHours(0,0,0,0);
+  const exp = new Date(dateStr); exp.setHours(0,0,0,0);
+  const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+  if(diffDays < 0) return {cls:'act-red', text:'Expirat'};
+  if(diffDays <= 7) return {cls:'act-yellow', text:diffDays+' zile'};
+  return {cls:'act-green', text:'Valabil'};
+}
+
+function renderHeaderDashboard(){
+  const curMonth = todayStr().slice(0,7);
+  const daysWorkedSet = new Set();
+  dailyKm.forEach(d => { if(d.data.startsWith(curMonth)) daysWorkedSet.add(d.data); });
+  saturdays.forEach(s => { if(s.data.startsWith(curMonth)) daysWorkedSet.add(s.data); });
+  
+  const daysCount = daysWorkedSet.size;
+  const liters = daysCount * 2;
+
+  document.getElementById('topHeaderDays').textContent = daysCount;
+  document.getElementById('topHeaderFuel').textContent = liters + ' litri';
+
+  const actsBar = document.getElementById('actsBar');
+  const items = [
+    {label:'ITP', val:truckActs.itp},
+    {label:'RCA', val:truckActs.rca},
+    {label:'Rovig', val:truckActs.rov},
+    {label:'Taho', val:truckActs.taho},
+    {label:'Autoriz', val:truckActs.auth}
+  ];
+  actsBar.innerHTML = items.map(it => {
+    const st = getActStatusClass(it.val);
+    return `<div class="act-badge ${st.cls}" onclick="switchTab('acte')">${it.label}: ${st.text}</div>`;
+  }).join('');
+}
+
+function addSaturday(){
+  const data = document.getElementById('satData').value;
+  const note = document.getElementById('satNote').value.trim();
+  if(!data){ alert('Selectează data sâmbetei.'); return; }
+  saturdays.push({ id: Date.now(), data, note: note||null });
+  saturdays.sort((a,b)=> new Date(a.data) - new Date(b.data));
+  save(KEY_SATURDAYS, saturdays);
+  document.getElementById('satNote').value = '';
+  document.getElementById('satData').valueAsDate = new Date();
+  renderSaturdays(); renderSalariu(); renderHeaderDashboard();
+}
+
+function deleteSaturday(id){
+  if(!confirm('Ștergi această sâmbătă pontată?')) return;
+  saturdays = saturdays.filter(s => s.id !== id);
+  save(KEY_SATURDAYS, saturdays);
+  renderSaturdays(); renderSalariu(); renderHeaderDashboard();
+}
+
+function renderSaturdays(){
+  const curMonth = todayStr().slice(0,7);
+  const monthSaturdays = saturdays.filter(s => s.data.slice(0,7) === curMonth);
+  document.getElementById('satTotalCount').textContent = monthSaturdays.length;
+  document.getElementById('satTotalBonus').textContent = (monthSaturdays.length * 100) + ' lei';
+
+  const listWrap = document.getElementById('satListWrap');
+  if(saturdays.length === 0){ listWrap.innerHTML = '<div class="empty">Nicio sâmbătă pontată încă.</div>'; return; }
+  listWrap.innerHTML = [...saturdays].reverse().map(s => `
+    <div class="entry full">
+      <div class="entry-top"><span class="date">${fmtDate(s.data)}</span><button class="del" onclick="deleteSaturday(${s.id})">✕</button></div>
+      <div class="entry-meta">${s.note ? s.note : 'Sâmbătă lucrată'}</div>
+      <div class="entry-consum"><span>Bonus sâmbătă</span><span class="c-val">+100 lei</span></div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('svData').valueAsDate = new Date();
+let selectedServiceTip = 'gresare';
+function selectServiceTip(tip){
+  selectedServiceTip = tip;
+  document.getElementById('tipGresareBtn').classList.toggle('selected', tip==='gresare');
+  document.getElementById('tipServiceBtn').classList.toggle('selected', tip==='service');
+}
+function sumaForServiceTip(tip){ return tip === 'service' ? 50 : 0; }
+let editingServiceId = null;
+
+function addService(){
+  const data = document.getElementById('svData').value;
+  const descriere = document.getElementById('svDescriere').value.trim();
+  if(!data){ alert('Selectează data.'); return; }
+  if(editingServiceId){
+    const idx = serviceEntries.findIndex(s => s.id === editingServiceId);
+    if(idx > -1) serviceEntries[idx] = { ...serviceEntries[idx], data, tip: selectedServiceTip, suma: sumaForServiceTip(selectedServiceTip), descriere: descriere||null };
+    cancelServiceEdit();
+  } else {
+    serviceEntries.push({ id: Date.now(), data, tip: selectedServiceTip, suma: sumaForServiceTip(selectedServiceTip), descriere: descriere||null });
+    document.getElementById('svDescriere').value = '';
+    document.getElementById('svData').valueAsDate = new Date();
+    selectServiceTip('gresare');
+  }
+  serviceEntries.sort((a,b)=> new Date(a.data) - new Date(b.data));
+  save(KEY_SERVICE, serviceEntries);
+  renderService(); renderIstoric(); renderSalariu();
+}
+
+function renderService(){
+  const curMonth = todayStr().slice(0,7);
+  const monthService = serviceEntries.filter(s => s.data.slice(0,7) === curMonth);
+  document.getElementById('svTotalCount').textContent = monthService.length || '–';
+  document.getElementById('svTotalBani').textContent = monthService.length ? monthService.reduce((sum,s)=>sum+s.suma,0).toLocaleString('ro-RO') + ' lei' : '–';
+
+  const listWrap = document.getElementById('serviceListWrap');
+  if(serviceEntries.length === 0){ listWrap.innerHTML = '<div class="empty">Nicio intervenție.</div>'; return; }
+  listWrap.innerHTML = [...serviceEntries].reverse().map(s=>{
+    const tipTxt = s.tip === 'service' ? 'Service' : 'Gresare';
+    const sumaTxt = s.suma > 0 ? `+${s.suma} lei` : 'gratuit';
+    return `<div class="entry ${s.tip==='service'?'full':''}">
+      <div class="entry-top"><span class="date">${fmtDate(s.data)}</span><span><button class="del" style="color:var(--blue);" onclick="editService(${s.id})">✎</button><button class="del" onclick="deleteService(${s.id})">✕</button></span></div>
+      <div class="entry-meta">${tipTxt}${s.descriere ? ' · '+s.descriere : ''}</div>
+      <div class="entry-consum"><span></span><span class="c-val">${sumaTxt}</span></div>
+    </div>`;
+  }).join('');
+}
+function deleteService(id){
+  if(!confirm('Ștergi intervenția?')) return;
+  serviceEntries = serviceEntries.filter(s => s.id !== id);
+  save(KEY_SERVICE, serviceEntries);
+  renderService(); renderIstoric(); renderSalariu();
+}
+function clearService(){
+  if(!confirm('Ștergi tot service-ul?')) return;
+  serviceEntries = []; save(KEY_SERVICE, serviceEntries); renderService(); renderIstoric(); renderSalariu();
+}
+function exportServiceCSV(){
+  if(serviceEntries.length === 0){ alert('Gol'); return; }
+  let csv = 'Data;Tip;Suma;Descriere\n';
+  [...serviceEntries].sort((a,b)=> new Date(a.data)-new Date(b.data)).forEach(s=>{
+    csv += `${s.data};${s.tip};${s.suma};${s.descriere ?? ''}\n`;
+  });
+  downloadCSV(csv, 'service.csv');
+}
+function cancelServiceEdit(){
+  editingServiceId = null;
+  document.getElementById('svDescriere').value = '';
+  document.getElementById('svData').valueAsDate = new Date();
+  selectServiceTip('gresare');
+  document.getElementById('btnAddService').textContent = 'Adaugă intervenție';
+  document.getElementById('btnCancelServiceEdit').style.display = 'none';
+}
+function editService(id){
+  const s = serviceEntries.find(x => x.id === id);
+  if(!s) return;
+  document.getElementById('svData').value = s.data;
+  document.getElementById('svDescriere').value = s.descriere || '';
+  selectServiceTip(s.tip);
+  editingServiceId = id;
+  document.getElementById('btnAddService').textContent = 'Salvează modificarea';
+  document.getElementById('btnCancelServiceEdit').style.display = 'flex';
+  switchTab('service');
+}
+
+function getKmRate(avgConsumption){
+  if(avgConsumption >= 31.00 && avgConsumption <= 33.00) return 0.50;
+  if(avgConsumption >= 33.01 && avgConsumption <= 35.00) return 0.45;
+  if(avgConsumption >= 35.01 && avgConsumption <= 37.00) return 0.40;
+  if(avgConsumption >= 37.01 && avgConsumption <= 38.00) return 0.35;
+  if(avgConsumption > 38.01) return 0.30;
+  return 0.40;
+}
+
+function renderSalariu(){
+  const curMonth = todayStr().slice(0,7);
+  const baza = 3900;
+  const monthSaturdays = saturdays.filter(s => s.data.slice(0,7) === curMonth);
+  const baniSambete = monthSaturdays.length * 100;
+
+  const monthPaid = paidTrips.filter(p => p.data.slice(0,7) === curMonth);
+  const baniCursePlatite = monthPaid.reduce((sum, p) => sum + p.suma, 0);
+
+  const openMonth = getOpenMonth();
+  let kmLuna = 0;
+  if(openMonth){
+    kmLuna = openMonth.closed ? (openMonth.kmEnd - openMonth.kmStart) : (openMonth.kmCurrent != null ? openMonth.kmCurrent - openMonth.kmStart : 0);
+  } else {
+    kmLuna = dailyKm.filter(d => d.data.startsWith(curMonth)).reduce((sum, d) => sum + d.distanta, 0);
+  }
+
+  const sortedFuel = [...entries].sort((a,b)=> a.km - b.km);
+  const { withConsum } = calcConsumptions(sortedFuel);
+  const monthConsumptions = withConsum.filter(e => e.consum !== null && e.data.startsWith(curMonth)).map(e => e.consum);
+  let avgCons = monthConsumptions.length ? (monthConsumptions.reduce((a,b)=>a+b,0)/monthConsumptions.length) : 0;
+  if(avgCons === 0 && withConsum.length){
+    const allCons = withConsum.filter(e=>e.consum!==null).map(e=>e.consum);
+    if(allCons.length) avgCons = allCons[allCons.length-1];
+  }
+
+  const pretKm = getKmRate(avgCons);
+  const baniKm = kmLuna * pretKm;
+
+  const monthService = serviceEntries.filter(s => s.data.slice(0,7) === curMonth);
+  const baniService = monthService.reduce((sum, s) => sum + s.suma, 0);
+  const monthServicePaid = monthService.filter(s => s.tip === 'service').length;
+
+  const totalSalariu = baza + baniSambete + baniCursePlatite + baniKm + baniService;
+  document.getElementById('salTotalFinal').textContent = totalSalariu.toLocaleString('ro-RO') + ' lei';
+
+  const breakdown = document.getElementById('salBreakdown');
+  breakdown.innerHTML = `
+    <div class="sort-row"><span>Salariu bază</span><b>${baza.toLocaleString('ro-RO')} lei</b></div>
+    <div class="sort-row"><span>Sâmbete lucrate (${monthSaturdays.length})</span><b>+${baniSambete.toLocaleString('ro-RO')} lei</b></div>
+    <div class="sort-row"><span>Curse plătite (${monthPaid.length})</span><b>+${baniCursePlatite.toLocaleString('ro-RO')} lei</b></div>
+    <div class="sort-row"><span>Km parcurși (${kmLuna.toLocaleString('ro-RO')} km × ${pretKm} lei [Consum mediu: ${avgCons ? avgCons.toFixed(2):'–'} %])</span><b>+${baniKm.toLocaleString('ro-RO')} lei</b></div>
+    <div class="sort-row"><span>Service (${monthServicePaid} plătit)</span><b>+${baniService.toLocaleString('ro-RO')} lei</b></div>
+  `;
+}
+
+document.getElementById('inpData').valueAsDate = new Date();
+let editingFuelId = null;
+
+function addEntry(){
+  const data = document.getElementById('inpData').value;
+  const km = parseFloat(document.getElementById('inpKm').value);
+  const litri = parseFloat(document.getElementById('inpLitri').value);
+  const pret = parseFloat(document.getElementById('inpPret').value);
+  const full = document.getElementById('inpFull').checked;
+
+  if(!data || isNaN(km) || isNaN(litri)){ alert('Completează datele.'); return; }
+  if(editingFuelId){
+    const idx = entries.findIndex(e => e.id === editingFuelId);
+    if(idx > -1) entries[idx] = { ...entries[idx], data, km, litri, pret: isNaN(pret)?null:pret, full };
+    cancelFuelEdit();
+  } else {
+    entries.push({ id: Date.now(), data, km, litri, pret: isNaN(pret)?null:pret, full });
+    document.getElementById('inpKm').value = '';
+    document.getElementById('inpLitri').value = '';
+    document.getElementById('inpPret').value = '';
+    document.getElementById('inpData').valueAsDate = new Date();
+  }
+  entries.sort((a,b)=> a.km - b.km);
+  save(KEY_FUEL, entries);
+  renderFuel(); renderIstoric(); renderSalariu(); updateAdvisorMetrics();
+}
+function deleteEntry(id){
+  if(!confirm('Ștergi alimentarea?')) return;
+  entries = entries.filter(e => e.id !== id);
+  save(KEY_FUEL, entries);
+  renderFuel(); renderIstoric(); renderSalariu(); updateAdvisorMetrics();
+}
+function clearFuel(){
+  if(!confirm('Ștergi tot?')) return;
+  entries = []; save(KEY_FUEL, entries); renderFuel(); renderIstoric(); renderSalariu(); updateAdvisorMetrics();
+}
+function exportFuelCSV(){
+  if(entries.length === 0){ alert('Gol'); return; }
+  let csv = 'Data;Km;Litri;Pret;Plin;Consum\n';
+  [...entries].sort((a,b)=> a.km - b.km).forEach(e=>{
+    csv += `${e.data};${e.km};${e.litri};${e.pret??''};${e.full};\n`;
+  });
+  downloadCSV(csv, 'alimentari.csv');
+}
+function cancelFuelEdit(){
+  editingFuelId = null;
+  document.getElementById('inpKm').value = '';
+  document.getElementById('inpLitri').value = '';
+  document.getElementById('inpPret').value = '';
+  document.getElementById('inpFull').checked = true;
+  document.getElementById('inpData').valueAsDate = new Date();
+  document.getElementById('btnAddFuel').textContent = 'Adaugă alimentare';
+  document.getElementById('btnCancelFuelEdit').style.display = 'none';
+}
+function editEntry(id){
+  const e = entries.find(x => x.id === id);
+  if(!e) return;
+  document.getElementById('inpData').value = e.data;
+  document.getElementById('inpKm').value = e.km;
+  document.getElementById('inpLitri').value = e.litri;
+  document.getElementById('inpPret').value = e.pret ?? '';
+  document.getElementById('inpFull').checked = e.full;
+  editingFuelId = id;
+  document.getElementById('btnAddFuel').textContent = 'Salvează modificarea';
+  document.getElementById('btnCancelFuelEdit').style.display = 'flex';
+  switchTab('combustibil');
+}
+
+function calcConsumptions(sorted){
+  let lastFull = null;
+  let accLitri = 0;
+  const result = sorted.map(e=>{
+    accLitri += e.litri;
+    let consum = null, distanta = null, litriInterval = null;
+    if(e.full){
+      if(lastFull !== null){
+        distanta = e.km - lastFull.km;
+        litriInterval = accLitri;
+        if(distanta > 0) consum = (accLitri / distanta) * 100;
+      }
+      lastFull = e;
+      accLitri = 0;
+    }
+    return {...e, consum, distanta, litriInterval};
+  });
+  let provisional = null;
+  if(lastFull !== null){
+    const latest = sorted[sorted.length - 1];
+    if(latest.km > lastFull.km){
+      const distanta = latest.km - lastFull.km;
+      if(distanta > 0 && accLitri > 0){
+        provisional = { litri: accLitri, distanta, consum: (accLitri/distanta)*100, dataLast: latest.data };
+      }
+    }
+  }
+  return { withConsum: result, provisional };
+}
+
+function renderFuel(){
+  const sorted = [...entries].sort((a,b)=> a.km - b.km);
+  const { withConsum, provisional } = calcConsumptions(sorted);
+  const consumVals = withConsum.filter(e => e.consum !== null).map(e => e.consum);
+
+  document.getElementById('statAvg').textContent = consumVals.length ? (consumVals.reduce((a,b)=>a+b,0)/consumVals.length).toFixed(2) + ' %' : '–';
+  document.getElementById('statLast').textContent = consumVals.length ? consumVals[consumVals.length-1].toFixed(2) + ' %' : '–';
+  document.getElementById('statKm').textContent = sorted.length>=2 ? (sorted[sorted.length-1].km - sorted[0].km).toLocaleString('ro-RO') : '–';
+  const totalLitri = sorted.reduce((s,e)=> s+e.litri, 0);
+  document.getElementById('statLitri').textContent = sorted.length ? Math.round(totalLitri).toLocaleString('ro-RO') : '–';
+
+  const provRow = document.getElementById('provRow');
+  if(provisional){
+    provRow.style.display = 'flex';
+    if(provisional.consum !== null){
+      document.getElementById('provLabel').textContent = `De la ultimul plin: ${provisional.litri.toFixed(1)} L pe ${provisional.distanta.toLocaleString('ro-RO')} km`;
+      document.getElementById('provVal').textContent = provisional.consum.toFixed(2) + ' %*';
+    } else {
+      document.getElementById('provLabel').textContent = `De la ultimul plin: ${provisional.distanta.toLocaleString('ro-RO')} km`;
+      document.getElementById('provVal').textContent = '–';
+    }
+  } else {
+    provRow.style.display = 'none';
+  }
+
+  const listWrap = document.getElementById('listWrap');
+  if(sorted.length === 0){ listWrap.innerHTML = '<div class="empty">Nicio alimentare.</div>'; return; }
+
+  listWrap.innerHTML = [...withConsum].reverse().map(e=>{
+    let consumHtml = '';
+    if(e.full && e.consum !== null){
+      consumHtml = `<div class="entry-consum"><span>${e.distanta.toLocaleString('ro-RO')} km</span><span class="c-val">${e.consum.toFixed(2)} %</span></div>`;
+    }
+    return `<div class="entry ${e.full?'full':''}">
+      <div class="entry-top"><span class="date">${fmtDate(e.data)}</span><span><button class="del" style="color:var(--blue);" onclick="editEntry(${e.id})">✎</button><button class="del" onclick="deleteEntry(${e.id})">✕</button></span></div>
+      <div class="entry-meta">${e.km.toLocaleString('ro-RO')} km · ${e.litri} L</div>
+      ${consumHtml}
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('tripData').valueAsDate = new Date();
+let editingTripId = null;
+
+function addTrip(){
+  const data = document.getElementById('tripData').value;
+  const sort = document.getElementById('tripSort').value.trim();
+  const tonaj = parseFloat(document.getElementById('tripTonaj').value);
+  const dest = document.getElementById('tripDest').value.trim();
+
+  if(!data || !sort || isNaN(tonaj)){ alert('Completează câmpurile.'); return; }
+  if(editingTripId){
+    const idx = trips.findIndex(t => t.id === editingTripId);
+    if(idx > -1) trips[idx] = { ...trips[idx], data, sort, tonaj, dest: dest || null };
+    cancelTripEdit();
+  } else {
+    trips.push({ id: Date.now(), data, sort, tonaj, dest: dest || null });
+    document.getElementById('tripSort').value = '';
+    document.getElementById('tripTonaj').value = '';
+    document.getElementById('tripDest').value = '';
+    document.getElementById('tripData').valueAsDate = new Date();
+  }
+  trips.sort((a,b)=> new Date(a.data) - new Date(b.data));
+  save(KEY_TRIPS, trips);
+  renderTrips(); renderIstoric(); renderSalariu(); updateAdvisorMetrics();
+}
+function deleteTrip(id){
+  if(!confirm('Ștergi cursa?')) return;
+  trips = trips.filter(t => t.id !== id);
+  save(KEY_TRIPS, trips);
+  renderTrips(); renderIstoric(); renderSalariu(); updateAdvisorMetrics();
+}
+function clearTrips(){
+  if(!confirm('Ștergi tot?')) return;
+  trips = []; save(KEY_TRIPS, trips); renderTrips(); renderIstoric(); renderSalariu(); updateAdvisorMetrics();
+}
+function exportTripsCSV(){
+  if(trips.length === 0){ alert('Gol'); return; }
+  let csv = 'Data;Sort;Tonaj;Destinatie\n';
+  [...trips].sort((a,b)=> new Date(a.data)-new Date(b.data)).forEach(t=>{
+    csv += `${t.data};${t.sort};${t.tonaj};${t.dest ?? ''}\n`;
+  });
+  downloadCSV(csv, 'curse.csv');
+}
+function cancelTripEdit(){
+  editingTripId = null;
+  document.getElementById('tripSort').value = '';
+  document.getElementById('tripTonaj').value = '';
+  document.getElementById('tripDest').value = '';
+  document.getElementById('tripData').valueAsDate = new Date();
+  document.getElementById('btnAddTrip').textContent = 'Adaugă cursă';
+  document.getElementById('btnCancelTripEdit').style.display = 'none';
+}
+function editTrip(id){
+  const t = trips.find(x => x.id === id);
+  if(!t) return;
+  document.getElementById('tripData').value = t.data;
+  document.getElementById('tripSort').value = t.sort;
+  document.getElementById('tripTonaj').value = t.tonaj;
+  document.getElementById('tripDest').value = t.dest || '';
+  editingTripId = id;
+  document.getElementById('btnAddTrip').textContent = 'Salvează modificarea';
+  document.getElementById('btnCancelTripEdit').style.display = 'flex';
+  switchTab('curse');
+}
+
+function renderTrips(){
+  const curMonth = todayStr().slice(0,7);
+  const monthTrips = trips.filter(t => t.data.slice(0,7) === curMonth);
+
+  const totalTone = monthTrips.reduce((s,t)=> s+t.tonaj, 0);
+  document.getElementById('tripTotalTone').textContent = monthTrips.length ? totalTone.toFixed(2) + ' t' : '–';
+  document.getElementById('tripTotalCurse').textContent = monthTrips.length || '–';
+  
+  const lunarAvg = monthTrips.length ? (totalTone / monthTrips.length) : 0;
+  document.getElementById('tripMonthAvg').textContent = monthTrips.length ? lunarAvg.toFixed(2) + ' t/cursă' : '–';
+
+  const today = todayStr();
+  const todayTrips = trips.filter(t => t.data === today);
+  const todayTone = todayTrips.reduce((s,t)=> s+t.tonaj, 0);
+  document.getElementById('tripTodayCurse').textContent = todayTrips.length || '–';
+  document.getElementById('tripTodayAvg').textContent = todayTrips.length ? (todayTone/todayTrips.length).toFixed(2) + ' t/cursă' : '–';
+
+  const byCategory = {};
+  monthTrips.forEach(t=>{
+    const c = classifySort(t.sort);
+    byCategory[c] = (byCategory[c]||0) + t.tonaj;
+  });
+  const breakdownWrap = document.getElementById('sortBreakdown');
+  const cats = Object.keys(byCategory);
+  if(cats.length === 0){
+    breakdownWrap.innerHTML = '<div class="empty" style="padding:10px;">Nicio cursă luna asta.</div>';
+  } else {
+    breakdownWrap.innerHTML = cats.map(c=>
+      `<div class="sort-row"><span class="badge badge-${c}">${sortLabel(c)}</span><b>${byCategory[c].toFixed(2)} t</b></div>`
+    ).join('');
+  }
+
+  const listWrap = document.getElementById('tripListWrap');
+  if(trips.length === 0){ listWrap.innerHTML = '<div class="empty">Nicio cursă înregistrată.</div>'; return; }
+  listWrap.innerHTML = [...trips].reverse().map(t=>{
+    const cls = classifySort(t.sort);
+    return `<div class="entry">
+      <div class="entry-top"><span class="date">${fmtDate(t.data)}</span><span><button class="del" style="color:var(--blue);" onclick="editTrip(${t.id})">✎</button><button class="del" onclick="deleteTrip(${t.id})">✕</button></span></div>
+      <div class="entry-meta"><span class="badge badge-${cls}">${t.sort}</span></div>
+      <div class="entry-consum"><span>${t.dest ? t.dest : '–'}</span><span class="c-val">${t.tonaj.toFixed(2)} t</span></div>
+    </div>`;
+  }).join('');
+}
+
+function getOpenMonth(){ return months.find(m => !m.closed); }
+function getMonthRecord(monthKey){ return months.find(m => m.monthKey === monthKey); }
+
+function renderKm(){
+  const open = getOpenMonth();
+  if(!open){
+    document.getElementById('kmDataStart').textContent = '–';
+    document.getElementById('kmStart').textContent = '–';
+    document.getElementById('kmCurrentDate').textContent = '–';
+    document.getElementById('kmParcursi').textContent = '–';
+  } else {
+    document.getElementById('kmDataStart').textContent = fmtDate(open.dataStart);
+    document.getElementById('kmStart').textContent = open.kmStart.toLocaleString('ro-RO') + ' km';
+    document.getElementById('kmCurrentDate').textContent = open.dataCurrentUpdate ? fmtDate(open.dataCurrentUpdate) : '--';
+    const parcursi = (open.kmCurrent!=null) ? (open.kmCurrent - open.kmStart) : 0;
+    document.getElementById('kmParcursi').textContent = parcursi.toLocaleString('ro-RO');
+  }
+
+  const dailyWrap = document.getElementById('dailyKmWrap');
+  const sortedDaily = [...dailyKm].sort((a,b)=> new Date(b.data) - new Date(a.data));
+  dailyWrap.innerHTML = sortedDaily.length === 0 ? '<div class="empty">Nicio zi închisă.</div>' : sortedDaily.map(d=>`
+    <div class="entry">
+      <div class="entry-top"><span class="date">${fmtDate(d.data)}</span><button class="del" onclick="deleteDailyEntry(${d.id})">✕</button></div>
+      <div class="entry-meta">${d.kmStart} → ${d.kmEnd} km</div>
+      <div class="entry-consum"><span></span><span class="c-val">${d.distanta} km</span></div>
+    </div>`).join('');
+
+  const closedMonths = months.filter(m => m.closed).sort((a,b)=> b.monthKey.localeCompare(a.monthKey));
+  const histWrap = document.getElementById('monthHistoryWrap');
+  histWrap.innerHTML = closedMonths.length === 0 ? '<div class="empty">Nicio lună închisă.</div>' : closedMonths.map(m=>{
+    const total = m.kmEnd - m.kmStart;
+    return `<div class="entry">
+      <div class="entry-top"><span class="date">${m.monthKey}</span></div>
+      <div class="entry-meta">${fmtDate(m.dataStart)} → ${fmtDate(m.dataEnd)}</div>
+      <div class="entry-consum"><span>Total</span><span class="c-val">${total} km</span></div>
+    </div>`;
+  }).join('');
+}
+
+function resyncOpenMonthFromDaily(){
+  const open = getOpenMonth();
+  if(!open) return;
+  const relevant = dailyKm.filter(d => d.data >= open.dataStart).sort((a,b)=> new Date(a.data) - new Date(b.data));
+  if(relevant.length){
+    const last = relevant[relevant.length-1];
+    open.kmCurrent = last.kmEnd;
+    open.dataCurrentUpdate = last.data;
+  } else {
+    open.kmCurrent = open.kmStart;
+    open.dataCurrentUpdate = null;
+  }
+  save(KEY_MONTHS, months);
+}
+function lastKnownKm(){
+  const open = getOpenMonth();
+  if(!open) return null;
+  const sorted = dailyKm.filter(d => d.data >= open.dataStart).sort((a,b)=> new Date(a.data) - new Date(b.data));
+  if(sorted.length){ const last = sorted[sorted.length-1]; return { km: last.kmEnd, data: last.data }; }
+  return { km: open.kmStart, data: open.dataStart };
+}
+function openDailyCloseModal(){
+  const open = getOpenMonth();
+  if(!open) return;
+  const ref = lastKnownKm();
+  document.getElementById('dailyCloseText').textContent = `De la ${fmtDate(ref.data)} (${ref.km} km) -- introdu kilometrajul curent.`;
+  document.getElementById('dailyCloseInput').value = '';
+  document.getElementById('dailyCloseModal').style.display = 'flex';
+}
+function confirmDailyClose(){
+  const val = parseFloat(document.getElementById('dailyCloseInput').value);
+  if(isNaN(val)){ alert('Valoare invalidă.'); return; }
+  const ref = lastKnownKm();
+  if(val < ref.km){ alert('Kilometraj mai mic.'); return; }
+  dailyKm.push({ id: Date.now(), data: todayStr(), kmStart: ref.km, kmEnd: val, distanta: val - ref.km, dataStart: ref.data });
+  save(KEY_DAILY, dailyKm);
+  resyncOpenMonthFromDaily();
+  document.getElementById('dailyCloseModal').style.display = 'none';
+  renderKm(); renderIstoric(); renderSalariu(); renderHeaderDashboard();
+}
+function postponeDailyClose(){
+  save(KEY_POSTPONE_DAILY, todayStr());
+  document.getElementById('dailyCloseModal').style.display = 'none';
+}
+function deleteDailyEntry(id){
+  if(!confirm('Ștergi ziua?')) return;
+  dailyKm = dailyKm.filter(d => d.id !== id);
+  save(KEY_DAILY, dailyKm);
+  resyncOpenMonthFromDaily();
+  renderKm(); renderIstoric(); renderSalariu(); renderHeaderDashboard();
+}
+function doMonthReset(kmValue){
+  const today = todayStr();
+  let open = getOpenMonth();
+  if(open){ open.closed = true; open.kmEnd = kmValue; open.dataEnd = today; }
+  months.push({ monthKey: today.slice(0,7), dataStart: today, kmStart: kmValue, kmCurrent: kmValue, dataCurrentUpdate: today, closed:false });
+  save(KEY_MONTHS, months);
+  renderKm(); renderIstoric(); renderSalariu();
+}
+function manualMonthReset(){
+  document.getElementById('modalKmInput').value = '';
+  document.getElementById('resetModal').style.display = 'flex';
+}
+function confirmMonthReset(){
+  const val = parseFloat(document.getElementById('modalKmInput').value);
+  if(isNaN(val)){ alert('Valoare invalidă.'); return; }
+  doMonthReset(val);
+  document.getElementById('resetModal').style.display = 'none';
+}
+function postponeReset(){
+  save(KEY_POSTPONE, todayStr());
+  document.getElementById('resetModal').style.display = 'none';
+}
+function checkMonthlyReset(){
+  const now = new Date();
+  const monthKey = todayStr().slice(0,7);
+  if(getMonthRecord(monthKey)) return;
+  const firstMonday = getFirstMonday(now.getFullYear(), now.getMonth());
+  if(new Date(now.getFullYear(), now.getMonth(), now.getDate()) < firstMonday) return;
+  if(load(KEY_POSTPONE, null) === todayStr()) return;
+  document.getElementById('resetModal').style.display = 'flex';
+}
+function checkDailyClosePrompt(){
+  const open = getOpenMonth();
+  if(!open) return;
+  const ref = lastKnownKm();
+  if(!ref || ref.data === todayStr()) return;
+  if(load(KEY_POSTPONE_DAILY, null) === todayStr()) return;
+  if(new Date().getHours() >= 17) openDailyCloseModal();
+}
+
+function downloadCSV(csv, filename){
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('platData').valueAsDate = new Date();
+let selectedTip = 'tur';
+function selectTip(tip){
+  selectedTip = tip;
+  document.getElementById('tipTurBtn').classList.toggle('selected', tip==='tur');
+  document.getElementById('tipReturBtn').classList.toggle('selected', tip==='retur');
+}
+function sumaForTip(tip){ return tip === 'retur' ? 70 : 35; }
+let editingPaidId = null;
+
+function addPaidTrip(){
+  const data = document.getElementById('platData').value;
+  const locatie = document.getElementById('platLocatie').value.trim();
+  if(!data || !locatie){ alert('Completează câmpurile.'); return; }
+  if(editingPaidId){
+    const idx = paidTrips.findIndex(p => p.id === editingPaidId);
+    if(idx > -1) paidTrips[idx] = { ...paidTrips[idx], data, locatie, tip: selectedTip, suma: sumaForTip(selectedTip) };
+    cancelPaidEdit();
+  } else {
+    paidTrips.push({ id: Date.now(), data, locatie, tip: selectedTip, suma: sumaForTip(selectedTip) });
+    document.getElementById('platLocatie').value = '';
+    document.getElementById('platData').valueAsDate = new Date();
+    selectTip('tur');
+  }
+  paidTrips.sort((a,b)=> new Date(a.data) - new Date(b.data));
+  save(KEY_PAID, paidTrips);
+  renderPaid(); renderIstoric(); renderSalariu();
+}
+function deletePaidTrip(id){
+  if(!confirm('Ștergi cursa?')) return;
+  paidTrips = paidTrips.filter(p => p.id !== id);
+  save(KEY_PAID, paidTrips);
+  renderPaid(); renderIstoric(); renderSalariu();
+}
+function clearPaid(){
+  if(!confirm('Ștergi tot?')) return;
+  paidTrips = []; save(KEY_PAID, paidTrips); renderPaid(); renderIstoric(); renderSalariu();
+}
+function exportPaidCSV(){
+  if(paidTrips.length === 0){ alert('Gol'); return; }
+  let csv = 'Data;Locatie;Tip;Suma\n';
+  [...paidTrips].sort((a,b)=> new Date(a.data)-new Date(b.data)).forEach(p=>{
+    csv += `${p.data};${p.locatie};${p.tip};${p.suma}\n`;
+  });
+  downloadCSV(csv, 'curse_platite.csv');
+}
+function cancelPaidEdit(){
+  editingPaidId = null;
+  document.getElementById('platLocatie').value = '';
+  document.getElementById('platData').valueAsDate = new Date();
+  selectTip('tur');
+  document.getElementById('btnAddPaid').textContent = 'Adaugă cursă';
+  document.getElementById('btnCancelPaidEdit').style.display = 'none';
+}
+function editPaidTrip(id){
+  const p = paidTrips.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById('platData').value = p.data;
+  document.getElementById('platLocatie').value = p.locatie;
+  selectTip(p.tip);
+  editingPaidId = id;
+  document.getElementById('btnAddPaid').textContent = 'Salvează modificarea';
+  document.getElementById('btnCancelPaidEdit').style.display = 'flex';
+  switchTab('platite');
+}
+
+function renderPaid(){
+  const curMonth = todayStr().slice(0,7);
+  const monthPaid = paidTrips.filter(p => p.data.slice(0,7) === curMonth);
+  document.getElementById('platTotalCurse').textContent = monthPaid.length || '–';
+  document.getElementById('platTotalSuma').textContent = monthPaid.length ? monthPaid.reduce((s,p)=>s+p.suma,0).toLocaleString('ro-RO') + ' lei' : '–';
+
+  const listWrap = document.getElementById('platListWrap');
+  if(paidTrips.length === 0){ listWrap.innerHTML = '<div class="empty">Nicio cursă înregistrată.</div>'; return; }
+  listWrap.innerHTML = [...paidTrips].reverse().map(p=>{
+    const tipTxt = p.tip === 'retur' ? 'Tur + retur' : 'Tur simplu';
+    return `<div class="entry">
+      <div class="entry-top"><span class="date">${fmtDate(p.data)}</span><span><button class="del" style="color:var(--blue);" onclick="editPaidTrip(${p.id})">✎</button><button class="del" onclick="deletePaidTrip(${p.id})">✕</button></span></div>
+      <div class="entry-meta">${p.locatie} · ${tipTxt}</div>
+      <div class="entry-consum"><span></span><span class="c-val">${p.suma} lei</span></div>
+    </div>`;
+  }).join('');
+}
+
+const LUNI_RO = ['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+function monthLabel(monthKey){
+  const [y,m] = monthKey.split('-');
+  return `${LUNI_RO[parseInt(m,10)-1]} ${y}`;
+}
+function buildMonthlySummary(){
+  const map = {};
+  function ensure(mk){ if(!map[mk]) map[mk] = { tone:0, curseTonaj:0, byCategory:{}, cursePlatiteCount:0, cursePlatiteSuma:0, consumVals:[], km:null, kmClosed:false, serviceCount:0, serviceSuma:0 }; return map[mk]; }
+
+  trips.forEach(t=>{
+    const mk = monthKeyOf(t.data); const m = ensure(mk);
+    m.tone += t.tonaj; m.curseTonaj += 1;
+    const cat = classifySort(t.sort);
+    m.byCategory[cat] = (m.byCategory[cat]||0) + t.tonaj;
+  });
+  paidTrips.forEach(p=>{
+    const mk = monthKeyOf(p.data); const m = ensure(mk);
+    m.cursePlatiteCount += 1; m.cursePlatiteSuma += p.suma;
+  });
+  const sortedFuel = [...entries].sort((a,b)=> a.km-b.km);
+  const { withConsum } = calcConsumptions(sortedFuel);
+  withConsum.forEach(e=>{
+    if(e.consum !== null){ const mk = monthKeyOf(e.data); const m = ensure(mk); m.consumVals.push(e.consum); }
+  });
+  months.forEach(mr=>{
+    const m = ensure(mr.monthKey);
+    m.km = mr.closed ? (mr.kmEnd - mr.kmStart) : (mr.kmCurrent!=null ? mr.kmCurrent - mr.kmStart : null);
+    m.kmClosed = mr.closed;
+  });
+  serviceEntries.forEach(s=>{
+    const mk = monthKeyOf(s.data); const m = ensure(mk);
+    m.serviceCount += 1; m.serviceSuma += s.suma;
+  });
+  return Object.keys(map).sort((a,b)=> b.localeCompare(a)).map(mk => ({ monthKey: mk, ...map[mk] }));
+}
+
+function renderIstoric(){
+  const wrap = document.getElementById('istoricWrap');
+  const summary = buildMonthlySummary();
+  if(summary.length === 0){ wrap.innerHTML = '<div class="empty">Nicio înregistrare.</div>'; return; }
+
+  wrap.innerHTML = summary.map(m=>{
+    const catRows = Object.keys(m.byCategory).map(c=>
+      `<div class="row"><span>${sortLabel(c)}</span><span>${m.byCategory[c].toFixed(2)} t</span></div>`
+    ).join('');
+    const consumAvg = m.consumVals.length ? (m.consumVals.reduce((a,b)=>a+b,0)/m.consumVals.length).toFixed(2)+' %' : '–';
+    const kmTxt = m.km!=null ? m.km.toLocaleString('ro-RO')+' km' : '–';
+    const tonajMediu = m.curseTonaj ? (m.tone / m.curseTonaj).toFixed(2)+' t/cursă' : '–';
+    return `<div class="month-card">
+      <div class="month-title">${monthLabel(m.monthKey)}</div>
+      <div class="row"><span>Tonaj total</span><span>${m.tone.toFixed(2)} t (${m.curseTonaj} curse)</span></div>
+      <div class="row"><span>Tonaj mediu / cursă (lunar)</span><span>${tonajMediu}</span></div>
+      ${catRows}
+      <div class="row"><span>Curse plătite</span><span>${m.cursePlatiteCount} · ${m.cursePlatiteSuma} lei</span></div>
+      <div class="row"><span>Consum mediu</span><span>${consumAvg}</span></div>
+      <div class="row"><span>Km parcurși</span><span>${kmTxt}</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* ===== GESTIONARE CLIENTI & HARTA ===== */
+let pickMap = null;
+let pickMarker = null;
+let pickedLatLng = null;
+let editingClientId = null;
+
+function openMapPicker(){
+  document.getElementById('mapSearchInput').value = '';
+  document.getElementById('mapPickedAddr').textContent = 'Nicio poziție aleasă.';
+  pickedLatLng = null;
+  document.getElementById('mapPickModal').style.display = 'flex';
+  setTimeout(()=>{
+    if(!pickMap){
+      pickMap = L.map('pickMapDiv').setView([45.9432, 24.9668], 7);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pickMap);
+      pickMap.on('click', function(e){ setPickMarker(e.latlng.lat, e.latlng.lng); });
+    } else { 
+      pickMap.invalidateSize(); 
+    }
+  }, 50);
+}
+
+function setPickMarker(lat, lng){
+  pickedLatLng = {lat, lng};
+  if(pickMarker){ 
+    pickMarker.setLatLng([lat, lng]); 
+  } else { 
+    pickMarker = L.marker([lat, lng], {draggable:true}).addTo(pickMap); 
+    pickMarker.on('dragend', function(e){
+      const pos = pickMarker.getLatLng();
+      pickedLatLng = {lat: pos.lat, lng: pos.lng};
+      document.getElementById('mapPickedAddr').textContent = `Poziție: ${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`;
+    });
+  }
+  pickMap.setView([lat, lng], Math.max(pickMap.getZoom(), 15));
+  document.getElementById('mapPickedAddr').textContent = `Poziție: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+function closeMapPicker(){ 
+  document.getElementById('mapPickModal').style.display = 'none'; 
+}
+
+function confirmMapPick(){
+  if(!pickedLatLng){ alert('Alege o poziție pe hartă.'); return; }
+  document.getElementById('clLocatie').value = `${pickedLatLng.lat.toFixed(6)}, ${pickedLatLng.lng.toFixed(6)}`;
+  closeMapPicker();
+}
+
+function useCurrentGpsLocation(){
+  if(!navigator.geolocation){ alert('Geolocalizarea nu este suportată de acest browser.'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    if(pickMap){
+      setPickMarker(lat, lng);
+    }
+  }, err => {
+    alert('Nu s-a putut obține locația GPS: ' + err.message);
+  }, {enableHighAccuracy: true, timeout: 10000});
+}
+
+function searchMapAddress(){
+  const q = document.getElementById('mapSearchInput').value.trim();
+  if(!q) return;
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(results => {
+      if(results && results.length){
+        const lat = parseFloat(results[0].lat), lng = parseFloat(results[0].lon);
+        setPickMarker(lat, lng);
+      } else {
+        alert('Adresa nu a fost găsită.');
+      }
+    })
+    .catch(() => alert('Eroare la căutarea adresei.'));
+}
+
+async function addClient(){
+  const nume = document.getElementById('clNume').value.trim();
+  const telefon = document.getElementById('clTelefon').value.trim();
+  const locatie = document.getElementById('clLocatie').value.trim();
+  const notite = document.getElementById('clNotite').value.trim();
+
+  if(!nume){ alert('Introdu numele clientului sau santierului.'); return; }
+
+  const data = { nume, telefon: telefon || null, locatie: locatie || null, notite: notite || null };
+
+  try {
+    if(editingClientId !== null && editingClientId !== undefined){
+      await sharedClientsRef.child(String(editingClientId)).update(data);
+      const idx = clients.findIndex(c => String(c.id) === String(editingClientId));
+      if(idx > -1) clients[idx] = { ...clients[idx], ...data };
+      cancelClientEdit();
+    } else {
+      // Firebase genereaza un ID unic pentru fiecare client.
+      // Nu mai rescriem intregul nod /sharedClients la fiecare adaugare.
+      const newClientRef = sharedClientsRef.push();
+      await newClientRef.set(data);
+      // Listenerul Firebase adauga automat clientul in `clients`.
+      // Nu il adaugam si manual, altfel apare de doua ori.
+      document.getElementById('clNume').value = '';
+      document.getElementById('clTelefon').value = '';
+      document.getElementById('clLocatie').value = '';
+      document.getElementById('clNotite').value = '';
+    }
+
+    clients.sort((a,b)=> (a.nume||'').localeCompare(b.nume||'', 'ro'));
+    localStorage.setItem(KEY_CLIENTS, JSON.stringify(clients));
+    renderClients();
+  } catch(err) {
+    console.error('Eroare la salvarea clientului:', err);
+    alert('Clientul nu a putut fi salvat. Verifica conexiunea la internet si Firebase.');
+  }
+}
+
+function renderClients(){
+  const query = (document.getElementById('clSearch').value || '').toLowerCase();
+  const listWrap = document.getElementById('clientListWrap');
+  
+  const filtered = clients.filter(c => (c.nume || '').toLowerCase().includes(query) || (c.locatie || '').toLowerCase().includes(query));
+  
+  if(filtered.length === 0){
+    listWrap.innerHTML = '<div class="empty">Niciun client salvat.</div>';
+    return;
+  }
+
+  listWrap.innerHTML = filtered.map(c => {
+    let locHtml = '';
+    if(c.locatie){
+      // Verificăm dacă e link sau coordonate
+      let mapsUrl = c.locatie;
+      if(c.locatie.match(/^-?\d+\.\d+,\s*-?\d+\.\d+$/)){
+        mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.locatie)}`;
+      } else if(!c.locatie.startsWith('http')){
+        mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.locatie)}`;
+      }
+      locHtml = `<div class="entry-meta">📍 <a href="${mapsUrl}" target="_blank" style="color:var(--blue);text-decoration:underline;">${c.locatie}</a></div>`;
+    }
+    const telHtml = c.telefon ? `<div class="entry-meta">📞 <a href="tel:${c.telefon}" style="color:var(--green);">${c.telefon}</a></div>` : '';
+    const notiteHtml = c.notite ? `<div class="entry-meta">💬 ${c.notite}</div>` : '';
+
+    return `<div class="entry full">
+      <div class="entry-top">
+        <span class="date" style="color:var(--purple);">${c.nume}</span>
+        <span>
+          <button class="del" style="color:var(--blue);" onclick="editClient(\'${c.id}\')">✎</button>
+          <button class="del" onclick="deleteClient(\'${c.id}\')">✕</button>
+        </span>
+      </div>
+      ${telHtml}
+      ${locHtml}
+      ${notiteHtml}
+    </div>`;
+  }).join('');
+}
+
+function editClient(id){
+  const c = clients.find(x => x.id === id);
+  if(!c) return;
+  document.getElementById('clNume').value = c.nume || '';
+  document.getElementById('clTelefon').value = c.telefon || '';
+  document.getElementById('clLocatie').value = c.locatie || '';
+  document.getElementById('clNotite').value = c.notite || '';
+  editingClientId = id;
+  document.getElementById('btnAddClient').textContent = 'Salvează modificarea';
+  document.getElementById('btnCancelClientEdit').style.display = 'flex';
+  switchTab('clienti');
+}
+
+function cancelClientEdit(){
+  editingClientId = null;
+  document.getElementById('clNume').value = '';
+  document.getElementById('clTelefon').value = '';
+  document.getElementById('clLocatie').value = '';
+  document.getElementById('clNotite').value = '';
+  document.getElementById('btnAddClient').textContent = 'Adaugă client';
+  document.getElementById('btnCancelClientEdit').style.display = 'none';
+}
+
+async function deleteClient(id){
+  if(!confirm('Stergi acest client?')) return;
+  try {
+    await sharedClientsRef.child(String(id)).remove();
+    clients = clients.filter(c => String(c.id) !== String(id));
+    localStorage.setItem(KEY_CLIENTS, JSON.stringify(clients));
+    renderClients();
+  } catch(err) {
+    console.error('Eroare la stergerea clientului:', err);
+    alert('Clientul nu a putut fi sters.');
+  }
+}
+
+function clearClients(){
+  if(!confirm('Ștergi toți clienții?')) return;
+  clients = [];
+  sharedClientsRef.remove();
+  localStorage.removeItem(KEY_CLIENTS);
+  renderClients();
+}
+
+function exportClientsCSV(){
+  if(clients.length === 0){ alert('Nu există clienți.'); return; }
+  let csv = 'Nume;Telefon;Locatie;Notite\n';
+  clients.forEach(c => {
+    csv += `"${c.nume||''}";"${c.telefon||''}";"${c.locatie||''}";"${c.notite||''}"\n`;
+  });
+  downloadCSV(csv, 'clienti.csv');
+}
+
+/* ===== GEMINI AI INTEGRATION ===== */
+let geminiApiKey = null;
+let geminiModel = null;
+let lastExtractedData = null;
+let lastExtractedType = null;
+
+// Pentru curse cu 2 avize
+let avizCount = 0;
+let aviz1Data = null;
+let aviz2Data = null;
+
+function initGemini(){
+  const saved = localStorage.getItem('gemini_api_key');
+  if(saved){
+    geminiApiKey = saved;
+    initGeminiModel();
+  } else {
+    document.getElementById('setupGeminiModal').style.display = 'flex';
+  }
+}
+
+function saveGeminiKey(){
+  const key = document.getElementById('geminiApiKey').value.trim();
+  if(!key){ alert('Introdu API key.'); return; }
+  localStorage.setItem('gemini_api_key', key);
+  geminiApiKey = key;
+  initGeminiModel();
+  document.getElementById('setupGeminiModal').style.display = 'none';
+}
+
+function skipGeminiSetup(){
+  document.getElementById('setupGeminiModal').style.display = 'none';
+}
+
+function initGeminiModel(){
+  if(!geminiApiKey || !window.google) return;
+  try {
+    geminiModel = window.google.generativeAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  } catch(e){
+    console.error('Gemini init failed:', e);
+  }
+}
+
+function openCamera(type){
+  if(!geminiApiKey){
+    alert('Configurează Gemini API key mai întâi (buton ⚙️ Settings).');
+    return;
+  }
+  lastExtractedType = type;
+  document.getElementById('cameraInput').click();
+}
+
+async function processCameraImage(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  
+  // Reseteaza pentru bon
+  if(lastExtractedType === 'bon'){
+    avizCount = 0;
+    aviz1Data = null;
+    aviz2Data = null;
+  }
+  
+  document.getElementById('processingModal').style.display = 'flex';
+  
+  try {
+    const base64 = await fileToBase64(file);
+    const prompt = lastExtractedType === 'bon' 
+      ? `Citeste bonul de motorină și extrage JSON cu: {"litri": number, "km": number, "pret": number, "data": "YYYY-MM-DD"}. Daca nu gasesti un camp, pune null. Răspunde DOAR cu JSON.`
+      : `Citeste avizul / chitanța și extrage JSON cu: {"sort": "string (ex: Balast, 8/16 nat)", "tonaj": number, "client": "string (optional)", "destinatie": "string (optional)"}. Daca nu gasesti un camp, pune null. Răspunde DOAR cu JSON.`;
+    
+    const response = await geminiModel.generateContent([
+      { inlineData: { mimeType: file.type, data: base64.split(',')[1] } },
+      { text: prompt }
+    ]);
+    
+    const text = response.response.text();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('Nu s-a putut extrage JSON');
+    
+    lastExtractedData = JSON.parse(jsonMatch[0]);
+    showPreview(file, lastExtractedData);
+    
+  } catch(err){
+    console.error('Gemini error:', err);
+    alert('Eroare la procesare: ' + err.message);
+  } finally {
+    document.getElementById('processingModal').style.display = 'none';
+    event.target.value = '';
+  }
+}
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function showPreview(file, data){
+  const preview = document.getElementById('previewModal');
+  document.getElementById('previewImage').src = URL.createObjectURL(file);
+  
+  let html = '<strong>Datele extrase:</strong><br>';
+  
+  if(lastExtractedType === 'bon'){
+    if(data.litri) html += `Litri: <strong>${data.litri}</strong><br>`;
+    if(data.km) html += `Km: <strong>${data.km}</strong><br>`;
+    if(data.pret) html += `Preț/L: <strong>${data.pret}</strong><br>`;
+    if(data.data) html += `Data: <strong>${data.data}</strong><br>`;
+    html += '<br><em style="color:var(--muted);">Verifica datele înainte de a completa formularul.</em>';
+    document.getElementById('previewData').innerHTML = html;
+  } else {
+    // Pentru aviz - suportă 2 imagini
+    if(avizCount === 0){
+      // Prima aviz
+      aviz1Data = data;
+      if(data.sort) html += `Sort: <strong>${data.sort}</strong><br>`;
+      if(data.tonaj) html += `Tonaj: <strong>${data.tonaj} t</strong><br>`;
+      if(data.client) html += `Client: <strong>${data.client}</strong><br>`;
+      if(data.destinatie) html += `Destinație: <strong>${data.destinatie}</strong><br>`;
+      html += '<br><em style="color:var(--muted);">Prima aviz din 2</em>';
+      document.getElementById('previewData').innerHTML = html;
+      
+      // Modific butoane
+      const confirmBtn = preview.querySelector('.btn-primary');
+      const cancelBtn = preview.querySelector('.btn-secondary');
+      confirmBtn.textContent = 'Adaugă a 2-a aviz';
+      confirmBtn.onclick = () => { avizCount = 1; cancelPreview(); document.getElementById('cameraInput').click(); };
+      cancelBtn.textContent = 'Anulează';
+    } else {
+      // A doua aviz
+      aviz2Data = data;
+      if(data.sort) html += `Sort: <strong>${data.sort}</strong><br>`;
+      if(data.tonaj) html += `Tonaj: <strong>${data.tonaj} t</strong><br>`;
+      if(data.client) html += `Client: <strong>${data.client}</strong><br>`;
+      if(data.destinatie) html += `Destinație: <strong>${data.destinatie}</strong><br>`;
+      
+      // Calculeaza total
+      const tonaj1 = aviz1Data.tonaj || 0;
+      const tonaj2 = aviz2Data.tonaj || 0;
+      const tonajTotal = tonaj1 + tonaj2;
+      
+      html += `<br><strong style="color:var(--green);">Total 2 avize: ${tonajTotal} t</strong>`;
+      html += `<br><em style="color:var(--muted);">Aviz 1: ${tonaj1}t + Aviz 2: ${tonaj2}t = ${tonajTotal}t</em>`;
+      
+      document.getElementById('previewData').innerHTML = html;
+      
+      // Modific butoane
+      const confirmBtn = preview.querySelector('.btn-primary');
+      const cancelBtn = preview.querySelector('.btn-secondary');
+      confirmBtn.textContent = 'Completează formularul';
+      confirmBtn.onclick = () => confirmExtractedDataDoubleAviz();
+      cancelBtn.textContent = 'Anulează totul';
+      cancelBtn.onclick = () => cancelDoubleAviz();
+    }
+  }
+  
+  preview.style.display = 'flex';
+}
+
+function confirmExtractedData(){
+  if(lastExtractedType === 'bon'){
+    if(lastExtractedData.data) document.getElementById('inpData').value = lastExtractedData.data;
+    if(lastExtractedData.km) document.getElementById('inpKm').value = lastExtractedData.km;
+    if(lastExtractedData.litri) document.getElementById('inpLitri').value = lastExtractedData.litri;
+    if(lastExtractedData.pret) document.getElementById('inpPret').value = lastExtractedData.pret;
+  } else {
+    if(lastExtractedData.data) document.getElementById('tripData').value = lastExtractedData.data;
+    if(lastExtractedData.sort) document.getElementById('tripSort').value = lastExtractedData.sort;
+    if(lastExtractedData.tonaj) document.getElementById('tripTonaj').value = lastExtractedData.tonaj;
+    if(lastExtractedData.destinatie) document.getElementById('tripDest').value = lastExtractedData.destinatie;
+    if(lastExtractedData.client) document.getElementById('tripDest').value = lastExtractedData.client;
+  }
+  cancelPreview();
+}
+
+function confirmExtractedDataDoubleAviz(){
+  // Pentru curse cu 2 avize - adună tonajele
+  const tonajTotal = (aviz1Data.tonaj || 0) + (aviz2Data.tonaj || 0);
+  
+  if(aviz1Data.data) document.getElementById('tripData').value = aviz1Data.data;
+  if(aviz1Data.sort) document.getElementById('tripSort').value = aviz1Data.sort;
+  document.getElementById('tripTonaj').value = tonajTotal;
+  
+  // Client și destinație - încearcă să găsească din una din avize
+  if(aviz1Data.client) document.getElementById('tripDest').value = aviz1Data.client;
+  else if(aviz2Data.client) document.getElementById('tripDest').value = aviz2Data.client;
+  
+  if(aviz1Data.destinatie && !aviz1Data.client) document.getElementById('tripDest').value = aviz1Data.destinatie;
+  
+  cancelDoubleAviz();
+}
+
+function cancelPreview(){
+  document.getElementById('previewModal').style.display = 'none';
+  lastExtractedData = null;
+  lastExtractedType = null;
+}
+
+function cancelDoubleAviz(){
+  document.getElementById('previewModal').style.display = 'none';
+  avizCount = 0;
+  aviz1Data = null;
+  aviz2Data = null;
+  lastExtractedData = null;
+  lastExtractedType = null;
+}
+
+function openGeminiSettings(){
+  document.getElementById('geminiApiKey').value = geminiApiKey || '';
+  document.getElementById('setupGeminiModal').style.display = 'flex';
+}
+
+function getMonthlyAvgConsumption(monthKey){
+  const sorted = [...entries].sort((a,b)=> a.km - b.km);
+  const { withConsum } = calcConsumptions(sorted);
+  const monthConsumptions = withConsum.filter(e => e.consum !== null && e.data.startsWith(monthKey)).map(e => e.consum);
+  return monthConsumptions.length ? (monthConsumptions.reduce((a,b)=>a+b,0)/monthConsumptions.length) : 0;
+}
+
+function updateAdvisorMetrics(){
+  const curMonth = todayStr().slice(0,7);
+  const monthTrips = trips.filter(t => t.data.slice(0,7) === curMonth);
+  const monthEntries = entries.filter(e => e.data.startsWith(curMonth)).sort((a,b)=> a.km - b.km);
+  
+  // Ultimul consum
+  const sorted = [...entries].sort((a,b)=> a.km - b.km);
+  const { withConsum } = calcConsumptions(sorted);
+  const lastConsum = withConsum.filter(e => e.consum !== null && e.data.startsWith(curMonth));
+  const ultimulConsum = lastConsum.length ? lastConsum[lastConsum.length-1].consum : 0;
+  
+  // Mediu lunar
+  const avgConsumption = getMonthlyAvgConsumption(curMonth);
+  
+  // Ultimul tonaj
+  const ultimulTonaj = monthTrips.length ? monthTrips[monthTrips.length-1].tonaj : 0;
+  
+  // Mediu tonaj
+  const avgTonaj = monthTrips.length ? (monthTrips.reduce((s,t)=>s+t.tonaj,0) / monthTrips.length) : 0;
+  
+  document.getElementById('advisorLastConsum').textContent = ultimulConsum ? ultimulConsum.toFixed(2) + ' L/100km' : '–';
+  document.getElementById('advisorAvgConsum').textContent = avgConsumption ? avgConsumption.toFixed(2) + ' L/100km' : '–';
+  document.getElementById('advisorLastTonaj').textContent = ultimulTonaj ? ultimulTonaj.toFixed(2) + ' t' : '–';
+  document.getElementById('advisorAvgTonaj').textContent = avgTonaj ? avgTonaj.toFixed(2) + ' t' : '–';
+}
+
+async function getAdvisorRecommendation(){
+  if(!geminiApiKey){
+    alert('Configurează Gemini API key mai întâi.');
+    return;
+  }
+  
+  const curMonth = todayStr().slice(0,7);
+  const monthTrips = trips.filter(t => t.data.slice(0,7) === curMonth);
+  
+  const sorted = [...entries].sort((a,b)=> a.km - b.km);
+  const { withConsum } = calcConsumptions(sorted);
+  const monthConsumptions = withConsum.filter(e => e.consum !== null && e.data.startsWith(curMonth)).map(e => e.consum);
+  
+  const avgConsumption = monthConsumptions.length ? (monthConsumptions.reduce((a,b)=>a+b,0)/monthConsumptions.length) : 0;
+  const lastConsum = monthConsumptions.length ? monthConsumptions[monthConsumptions.length-1] : 0;
+  
+  const avgTonaj = monthTrips.length ? (monthTrips.reduce((s,t)=>s+t.tonaj,0) / monthTrips.length) : 0;
+  const lastTonaj = monthTrips.length ? monthTrips[monthTrips.length-1].tonaj : 0;
+  
+  const daysWorked = new Set();
+  dailyKm.filter(d => d.data.startsWith(curMonth)).forEach(d => daysWorked.add(d.data));
+  
+  const prompt = `Ești consilier eficiență transport. Analizează datele mele de șofer de camion și dă sfaturi practice.
+
+DATELE LUNII CURENTE:
+- Consum mediu: ${avgConsumption.toFixed(2)} L/100km
+- Ultimul consum: ${lastConsum.toFixed(2)} L/100km
+- Tonaj mediu: ${avgTonaj.toFixed(2)} tone/cursă
+- Ultimul tonaj: ${lastTonaj.toFixed(2)} tone
+- Zile lucrate: ${daysWorked.size}
+- Curse: ${monthTrips.length}
+
+REGULI:
+- Sub 35 L/100km = BINE
+- 35-37 L/100km = MEDIU (trebuie să scadă)
+- Peste 37 L/100km = RĂU (acțiune urgentă)
+- Tonaj sub 37t/cursă = SUBOPTIM (crește tonaj)
+- Tonaj peste 37t/cursă = BUN
+
+ANALIZEAZĂ ȘI DĂ:
+1. Status consum (BINE/MEDIU/RĂU)
+2. Status tonaj (SUBOPTIM/OK/BUN)
+3. 2-3 recomandări concrete pentru CURSA URMĂTOARE
+4. Sfaturi de conduită (viteză, accelerare, etc.)
+
+Răspunde pe română, direct și practic. Fii concis, maxim 150 cuvinte.`;
+
+  document.getElementById('advisorWrap').innerHTML = '<div class="processing-spinner"></div><p style="text-align:center;color:var(--muted);margin-top:10px;">Analizez datele...</p>';
+  
+  try {
+    const response = await geminiModel.generateContent(prompt);
+    const advice = response.response.text();
+    
+    document.getElementById('advisorWrap').innerHTML = `
+      <div style="background:var(--card2);border-radius:10px;padding:14px;line-height:1.6;font-size:.9rem;color:var(--text);">
+        ${advice.split('\n').map(line => line.trim() ? `<p style="margin:8px 0;">${line}</p>` : '').join('')}
+      </div>
+    `;
+  } catch(err){
+    console.error('Advisor error:', err);
+    document.getElementById('advisorWrap').innerHTML = `<div class="empty" style="color:var(--red);">Eroare: ${err.message}</div>`;
+  }
+}
+</script>
+</body>
+</html>
